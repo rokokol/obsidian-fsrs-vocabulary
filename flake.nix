@@ -28,6 +28,11 @@
             echo "  npm run check   typecheck + lint + test"
           '';
         };
+
+        # Without this output `nix fmt` does nothing here and a gate has nothing to run.
+        # nixfmt-tree walks the tree rather than the files it is handed, so one command
+        # covers every .nix file the repository grows
+        formatter = pkgs.nixfmt-tree;
       }
     );
 }
