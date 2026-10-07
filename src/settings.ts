@@ -1,5 +1,5 @@
-import { default_w } from "ts-fsrs";
 import { contentColumns, isManagedColumn } from "./model/dictionary";
+import { sanitizeWeights } from "./model/srs";
 
 /** Columns a fresh dictionary starts with — the first is the card front / key. */
 export const DEFAULT_COLUMNS = ["word", "transcription", "translation"];
@@ -172,21 +172,6 @@ export function migrateSettings(
     ...weights,
     remindEveryMinutes: clampRemindMinutes(remindEveryHours * 60),
   };
-}
-
-/**
- * Stored weights the scheduler can use, or null for the defaults. A set of another
- * length belongs to another FSRS version, and the scheduler would quietly convert or
- * reject it; anything not a finite number came from a hand edit.
- */
-export function sanitizeWeights(value: unknown): number[] | null {
-  if (!Array.isArray(value) || value.length !== default_w.length) return null;
-  const weights: number[] = [];
-  for (const item of value) {
-    if (typeof item !== "number" || !Number.isFinite(item)) return null;
-    weights.push(item);
-  }
-  return weights;
 }
 
 /** Parse a user-typed list (commas/newlines) into a clean, deduped key list. */

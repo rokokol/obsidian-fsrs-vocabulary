@@ -1,5 +1,6 @@
 import {
   createEmptyCard,
+  default_w,
   fsrs,
   generatorParameters,
   Rating,
@@ -154,6 +155,21 @@ export interface Scheduling {
   retention: number;
   /** The FSRS-6 weights fitted to this user's reviews; null means the defaults. */
   weights: readonly number[] | null;
+}
+
+/**
+ * Weights the scheduler can use, or null for the defaults. A set of another length
+ * belongs to another FSRS version, which the scheduler would quietly convert or
+ * reject; anything not a finite number came from a hand edit.
+ */
+export function sanitizeWeights(value: unknown): number[] | null {
+  if (!Array.isArray(value) || value.length !== default_w.length) return null;
+  const weights: number[] = [];
+  for (const item of value) {
+    if (typeof item !== "number" || !Number.isFinite(item)) return null;
+    weights.push(item);
+  }
+  return weights;
 }
 
 function scheduler({ retention, weights }: Scheduling): ReturnType<typeof fsrs> {

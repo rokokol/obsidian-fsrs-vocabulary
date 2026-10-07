@@ -12,6 +12,11 @@ export default defineConfig({
       // implementation — so importing a value from it fails to resolve under
       // vitest. Point at a stub for the handful of values the plugin needs.
       obsidian: fileURLToPath(new URL("./tests/stubs/obsidian.ts", import.meta.url)),
+      // fsrs-browser names its entry only as `module`, which the bundler reads and
+      // vitest's node resolution does not.
+      "fsrs-browser": fileURLToPath(
+        new URL("./node_modules/fsrs-browser/fsrs_browser.js", import.meta.url),
+      ),
     },
   },
 });

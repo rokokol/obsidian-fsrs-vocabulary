@@ -45,4 +45,10 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // The tests run under node and never ship to a phone, which is what the rule
+    // guards against.
+    files: ["tests/**/*.ts"],
+    rules: { "obsidianmd/no-nodejs-modules": "off" },
+  },
 );
