@@ -201,7 +201,7 @@ Requires Node 22+
 npm install
 cp .env.example .env      # set OBSIDIAN_PLUGIN_DIR to your vault plugin folder
 npm run dev               # watch build, copies artifacts into the vault
-npm run check             # typecheck + lint + tests
+npm run check             # typecheck + lint + API version check + tests
 npm run build             # production build
 ```
 

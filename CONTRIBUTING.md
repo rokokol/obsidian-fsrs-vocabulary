@@ -22,8 +22,10 @@ Where the split is genuinely unclear, a bare `Assisted-by:` with no suffix is th
 ## Before a pull request
 
 ```sh
-npm run check      # typecheck, eslint and the vitest suite
+npm run check      # typecheck, eslint, the API version check and the vitest suite
 ```
+
+The API version check, `npm run check:since`, fails when the sources use Obsidian API that is newer than `minAppVersion` in `manifest.json`, as the community directory's review does. Lint misses some of those calls. Raise `minAppVersion` or drop the call, because the directory ignores `eslint-disable` comments
 
 `nix develop` gives you the toolchain it needs. One commit per logical change; the version files are written by `npm version` at release, never in a feature commit
 

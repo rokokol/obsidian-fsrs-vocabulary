@@ -13,7 +13,8 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "npm run typecheck && npm run lint && npm run test",
+    "check:since": "node check-since.mjs",
+    "check": "npm run typecheck && npm run lint && npm run check:since && npm run test",
     "version": "node version-bump.mjs && git add manifest.json versions.json"
   },
   "keywords": [
