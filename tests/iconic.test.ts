@@ -146,6 +146,12 @@ interface FakeStat {
   mtime: number;
 }
 
+/**
+ * The vault's config folder in these tests. Not the usual name on purpose: a plugin
+ * that assumed the usual one would look in the wrong place and fail every test here.
+ */
+const CONFIG_DIR = "test-config";
+
 function fakeApp(
   files: Record<string, string>,
   stats: Record<string, FakeStat | null>,
@@ -153,7 +159,7 @@ function fakeApp(
 ): { app: App; counters: typeof counters } {
   const app = {
     vault: {
-      configDir: ".obsidian",
+      configDir: CONFIG_DIR,
       adapter: {
         stat: (path: string): Promise<FakeStat | null> => {
           counters.statCalls += 1;
@@ -171,8 +177,8 @@ function fakeApp(
   return { app, counters };
 }
 
-const ICONIC_PATH = ".obsidian/plugins/iconic/data.json";
-const MANIFEST_PATH = ".obsidian/plugins/iconic/manifest.json";
+const ICONIC_PATH = `${CONFIG_DIR}/plugins/iconic/data.json`;
+const MANIFEST_PATH = `${CONFIG_DIR}/plugins/iconic/manifest.json`;
 
 describe("iconicInstalled", () => {
   it("sees Iconic by the manifest Obsidian wrote when installing it", async () => {
@@ -201,7 +207,7 @@ describe("iconicInstalled", () => {
   it("says no when the adapter throws", async () => {
     const app = {
       vault: {
-        configDir: ".obsidian",
+        configDir: CONFIG_DIR,
         adapter: {
           stat: (): Promise<never> => Promise.reject(new Error("EACCES")),
         },

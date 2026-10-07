@@ -197,7 +197,7 @@ export default class FsrsVocabularyPlugin extends Plugin {
       }),
     );
 
-    this.addRibbonIcon("layout-dashboard", "FSRS Vocabulary dashboard", () => {
+    this.addRibbonIcon("layout-dashboard", "Vocabulary dashboard", () => {
       void this.openDashboard();
     });
 
@@ -207,7 +207,7 @@ export default class FsrsVocabularyPlugin extends Plugin {
       if (file && leaf && isDictionaryFile(this.app, file)) {
         void this.openAsDictionary(file, leaf);
       } else {
-        new Notice("Active note is not an FSRS Vocabulary dictionary.");
+        new Notice("Active note is not a dictionary.");
       }
     });
 
@@ -326,7 +326,7 @@ export default class FsrsVocabularyPlugin extends Plugin {
 
     this.addCommand({
       id: "open-as-markdown",
-      name: "Open dictionary as markdown",
+      name: "Open dictionary as Markdown",
       checkCallback: (checking) => {
         const view = this.app.workspace.getActiveViewOfType(DictionaryEditorView);
         const file = view?.getFile() ?? null;

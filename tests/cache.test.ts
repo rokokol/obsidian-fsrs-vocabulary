@@ -11,7 +11,7 @@ import { DictionaryCache } from "../src/obsidian/cache";
  */
 function fakeApp(notes: Record<string, Record<string, unknown> | null>): App {
   const files = Object.keys(notes).map((path) => {
-    const file = Object.create(TFile.prototype) as TFile;
+    const file = new TFile();
     file.path = path;
     return file;
   });
@@ -106,7 +106,7 @@ describe("DictionaryCache.rebuild", () => {
     // runs its first believable pass unconditionally rather than on this answer.
     const notes: Record<string, Record<string, unknown> | null> = { "Words.md": DICTIONARY };
     const cache = new DictionaryCache(fakeApp(notes));
-    const file = Object.create(TFile.prototype) as TFile;
+    const file = new TFile();
     file.path = "Words.md";
     cache.update(file);
     expect(cache.rebuild()).toBe(false);

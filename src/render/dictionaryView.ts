@@ -75,9 +75,9 @@ export function renderDictionary(
   const fm = getFrontmatter(ctx);
   if (!fm || !marksDictionary(fm)) return;
 
-  const tables = Array.from(el.querySelectorAll("table")).filter(
-    (t): t is HTMLTableElement => t instanceof HTMLTableElement,
-  );
+  // The selector already types these as tables; an `instanceof` check on top of it
+  // would fail for a table that lives in a popout window
+  const tables = Array.from(el.querySelectorAll("table"));
   for (const table of tables) {
     if (table.dataset["fsrsVocabulary"] === "done") continue;
     const headers = readHeaders(table);

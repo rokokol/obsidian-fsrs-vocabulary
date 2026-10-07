@@ -1,4 +1,4 @@
-import type { App, TFile } from "obsidian";
+import { TFile, type App } from "obsidian";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DueTracker } from "../src/review/dueTracker";
 
@@ -8,7 +8,7 @@ import { DueTracker } from "../src/review/dueTracker";
  * events costs one pass, that counting reads no files, and that nothing keeps
  * running after dispose.
  */
-const file = (path: string): TFile => ({ path }) as TFile;
+const file = (path: string): TFile => Object.assign(new TFile(), { path });
 
 interface Harness {
   tracker: DueTracker;
@@ -57,8 +57,9 @@ describe("DueTracker", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-07-30T12:00:00Z"));
     // The tracker schedules through `window`, as an Obsidian plugin does; these tests
-    // run in Node, where the same timers live on the global object.
-    vi.stubGlobal("window", globalThis);
+    // run in Node, where the timers are plain globals. They are taken after the fake
+    // clock is installed above, so `window` holds the fake ones
+    vi.stubGlobal("window", { setTimeout, clearTimeout });
   });
 
   afterEach(() => {

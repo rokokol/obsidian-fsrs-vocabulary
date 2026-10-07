@@ -47,7 +47,7 @@ export class DashboardView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "FSRS Vocabulary dashboard";
+    return "Vocabulary dashboard";
   }
 
   override getIcon(): string {
