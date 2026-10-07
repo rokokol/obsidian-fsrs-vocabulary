@@ -1,3 +1,4 @@
+import { default_w } from "ts-fsrs";
 import { contentColumns, isManagedColumn } from "./model/dictionary";
 
 /** Columns a fresh dictionary starts with — the first is the card front / key. */
@@ -50,6 +51,11 @@ export interface FsrsVocabularySettings {
   newDictionaryColumns: string[];
   /** Target retention for FSRS scheduling (0..1). */
   fsrsRetention: number;
+  /**
+   * FSRS weights fitted to this user's own reviews; null schedules with the
+   * defaults. One set for every dictionary.
+   */
+  fsrsWeights: number[] | null;
   /** Whether review pulls due cards from all dictionaries or just the active note. */
   reviewScope: "note" | "vault";
   /** Whether dictionary notes auto-open in the interactive view or as markdown. */
@@ -119,6 +125,7 @@ export function parseRemindMinutes(input: string, current: number): number {
 export const DEFAULT_SETTINGS: FsrsVocabularySettings = {
   newDictionaryColumns: [...DEFAULT_COLUMNS],
   fsrsRetention: 0.9,
+  fsrsWeights: null,
   reviewScope: "note",
   defaultView: "dictionary",
   defaultSort: "manual",
@@ -150,11 +157,36 @@ export function migrateSettings(
   stored: Partial<FsrsVocabularySettings> & LegacySettings,
 ): Partial<FsrsVocabularySettings> {
   const { remindEveryHours, ...rest } = stored;
+  const weights =
+    rest.fsrsWeights === undefined ? {} : { fsrsWeights: sanitizeWeights(rest.fsrsWeights) };
   if (rest.remindEveryMinutes !== undefined) {
-    return { ...rest, remindEveryMinutes: clampRemindMinutes(rest.remindEveryMinutes) };
+    return {
+      ...rest,
+      ...weights,
+      remindEveryMinutes: clampRemindMinutes(rest.remindEveryMinutes),
+    };
   }
-  if (remindEveryHours === undefined) return rest;
-  return { ...rest, remindEveryMinutes: clampRemindMinutes(remindEveryHours * 60) };
+  if (remindEveryHours === undefined) return { ...rest, ...weights };
+  return {
+    ...rest,
+    ...weights,
+    remindEveryMinutes: clampRemindMinutes(remindEveryHours * 60),
+  };
+}
+
+/**
+ * Stored weights the scheduler can use, or null for the defaults. A set of another
+ * length belongs to another FSRS version, and the scheduler would quietly convert or
+ * reject it; anything not a finite number came from a hand edit.
+ */
+export function sanitizeWeights(value: unknown): number[] | null {
+  if (!Array.isArray(value) || value.length !== default_w.length) return null;
+  const weights: number[] = [];
+  for (const item of value) {
+    if (typeof item !== "number" || !Number.isFinite(item)) return null;
+    weights.push(item);
+  }
+  return weights;
 }
 
 /** Parse a user-typed list (commas/newlines) into a clean, deduped key list. */

@@ -148,27 +148,37 @@ export function cardFromCell(cell: string, now: Date = new Date()): Card {
   return decodeCard(cell) ?? newCard(now);
 }
 
-function scheduler(retention: number): ReturnType<typeof fsrs> {
-  return fsrs(generatorParameters({ request_retention: retention }));
+/** What the scheduler is asked to aim for, and the memory model it uses to get there. */
+export interface Scheduling {
+  /** Target probability of recall, 0..1. */
+  retention: number;
+  /** The FSRS-6 weights fitted to this user's reviews; null means the defaults. */
+  weights: readonly number[] | null;
+}
+
+function scheduler({ retention, weights }: Scheduling): ReturnType<typeof fsrs> {
+  return fsrs(
+    generatorParameters({ request_retention: retention, ...(weights ? { w: weights } : {}) }),
+  );
 }
 
 /** Apply a grade and return the next card state. */
 export function review(
   card: Card,
   rating: ReviewRating,
-  retention: number,
+  scheduling: Scheduling,
   now: Date = new Date(),
 ): Card {
-  return scheduler(retention).next(card, now, GRADE[rating]).card;
+  return scheduler(scheduling).next(card, now, GRADE[rating]).card;
 }
 
 /** Preview the next due date for each rating (for button hints). */
 export function previewDueDates(
   card: Card,
-  retention: number,
+  scheduling: Scheduling,
   now: Date = new Date(),
 ): Record<ReviewRating, Date> {
-  const f = scheduler(retention);
+  const f = scheduler(scheduling);
   return Object.fromEntries(
     REVIEW_RATINGS.map((rating) => [rating, f.next(card, now, GRADE[rating]).card.due]),
   ) as Record<ReviewRating, Date>;
@@ -191,14 +201,18 @@ const DAY_MS = 24 * 60 * 60 * 1000;
  * and learning and relearning steps are fixed minutes that retention has no say in;
  * moving those would be inventing a schedule rather than restating one.
  */
-export function rescheduleCard(card: Card, retention: number, now: Date = new Date()): Card | null {
+export function rescheduleCard(
+  card: Card,
+  scheduling: Scheduling,
+  now: Date = new Date(),
+): Card | null {
   if (card.state !== State.Review || !card.last_review) return null;
   const elapsed = Math.max(0, (now.getTime() - card.last_review.getTime()) / DAY_MS);
   // `elapsed` only reaches the interval through FSRS's fuzz, which `scheduler` leaves
   // at its default of off — so the same card gives the same answer today and next
   // month, and a card that did not move is skipped below. Turning fuzz on would make
   // that skip stop firing and this command rewrite every card, every run.
-  const days = scheduler(retention).next_interval(card.stability, Math.round(elapsed));
+  const days = scheduler(scheduling).next_interval(card.stability, Math.round(elapsed));
   if (days === card.scheduled_days) return null;
   return {
     ...card,

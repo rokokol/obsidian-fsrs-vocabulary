@@ -174,7 +174,7 @@ export class ReviewModal extends Modal {
     }
 
     const now = new Date();
-    const preview = previewDueDates(item.card, this.prefs.retention, now);
+    const preview = previewDueDates(item.card, this.prefs.scheduling, now);
     for (const rating of REVIEW_RATINGS) {
       const btn = controls.createEl("button", {
         cls: `fsrs-vocabulary-rate fsrs-vocabulary-rate-${rating}`,
@@ -209,7 +209,7 @@ export class ReviewModal extends Modal {
     this.grading = true;
     try {
       const now = new Date();
-      const next = review(item.card, rating, this.prefs.retention, now);
+      const next = review(item.card, rating, this.prefs.scheduling, now);
       if (await writeReview(this.app, item, next)) {
         this.prefs.logReview({
           c: item.cardId,

@@ -1,4 +1,4 @@
-import type { Card } from "ts-fsrs";
+import { default_w, type Card } from "ts-fsrs";
 import { describe, expect, it } from "vitest";
 import {
   cardFromCell,
@@ -9,9 +9,34 @@ import {
   isDue,
   newCard,
   newCardId,
+  previewDueDates,
   rescheduleCard,
   review,
+  type Scheduling,
 } from "../src/model/srs";
+
+/** Scheduling at a target retention with the default weights. */
+const at = (retention: number): Scheduling => ({ retention, weights: null });
+
+describe("personal weights", () => {
+  const now = new Date("2026-07-07T00:00:00Z");
+
+  it("reach the scheduler", () => {
+    // The initial stability of an Easy first answer is the fourth weight; a memory
+    // that holds a first Easy answer twice as long earns a longer first interval.
+    const weights = [...default_w];
+    weights[3] = (weights[3] ?? 0) * 2;
+    const own = review(newCard(now), "easy", { retention: 0.9, weights }, now);
+    const plain = review(newCard(now), "easy", at(0.9), now);
+    expect(own.due.getTime()).toBeGreaterThan(plain.due.getTime());
+    expect(previewDueDates(newCard(now), { retention: 0.9, weights }, now).easy).toEqual(own.due);
+  });
+
+  it("are the default ones when none were fitted", () => {
+    const same = review(newCard(now), "easy", { retention: 0.9, weights: [...default_w] }, now);
+    expect(review(newCard(now), "easy", at(0.9), now).due).toEqual(same.due);
+  });
+});
 
 describe("srs encode/decode", () => {
   it("round-trips a card", () => {
@@ -27,7 +52,7 @@ describe("srs encode/decode", () => {
     // A learning card graded Good moves to its second step; losing that on disk
     // would send it back to the first step on every review.
     const now = new Date("2026-07-07T00:00:00Z");
-    const learning = review(newCard(now), "good", 0.9, now);
+    const learning = review(newCard(now), "good", at(0.9), now);
     expect(learning.learning_steps).toBeGreaterThan(0);
     expect(decodeCard(encodeCard(learning, "a1"))?.learning_steps).toBe(learning.learning_steps);
   });
@@ -78,7 +103,7 @@ describe("srs scheduling", () => {
   it("a 'good' review pushes the due date into the future", () => {
     const now = new Date("2026-07-07T00:00:00Z");
     const card = newCard(now);
-    const next = review(card, "good", 0.9, now);
+    const next = review(card, "good", at(0.9), now);
     expect(next.due.getTime()).toBeGreaterThan(now.getTime());
     expect(next.reps).toBe(1);
     expect(dueDateString(next)).toMatch(/^\d{4}-\d{2}-\d{2}$/);
@@ -87,8 +112,8 @@ describe("srs scheduling", () => {
   it("'again' schedules sooner than 'easy'", () => {
     const now = new Date("2026-07-07T00:00:00Z");
     const card = newCard(now);
-    const again = review(card, "again", 0.9, now).due.getTime();
-    const easy = review(card, "easy", 0.9, now).due.getTime();
+    const again = review(card, "again", at(0.9), now).due.getTime();
+    const easy = review(card, "easy", at(0.9), now).due.getTime();
     expect(again).toBeLessThan(easy);
   });
 });
@@ -101,7 +126,7 @@ describe("rescheduleCard", () => {
     let card = newCard(new Date("2026-01-01T00:00:00Z"));
     // Three good reviews are enough to graduate out of learning.
     for (const day of ["2026-01-01", "2026-01-02", "2026-02-01"]) {
-      card = review(card, "good", retention, new Date(`${day}T00:00:00Z`));
+      card = review(card, "good", at(retention), new Date(`${day}T00:00:00Z`));
     }
     return card;
   }
@@ -111,8 +136,8 @@ describe("rescheduleCard", () => {
     // reason the setting exists — and why the dates already on disk are stale after
     // it changes.
     const card = reviewed();
-    const relaxed = rescheduleCard(card, 0.7, now);
-    const strict = rescheduleCard(card, 0.97, now);
+    const relaxed = rescheduleCard(card, at(0.7), now);
+    const strict = rescheduleCard(card, at(0.97), now);
     expect(relaxed).not.toBeNull();
     expect(strict).not.toBeNull();
     expect(relaxed?.due.getTime()).toBeGreaterThan(strict?.due.getTime() ?? 0);
@@ -120,7 +145,7 @@ describe("rescheduleCard", () => {
 
   it("leaves the memory model alone, moving only the interval", () => {
     const card = reviewed();
-    const next = rescheduleCard(card, 0.7, now);
+    const next = rescheduleCard(card, at(0.7), now);
     expect(next?.stability).toBe(card.stability);
     expect(next?.difficulty).toBe(card.difficulty);
     expect(next?.reps).toBe(card.reps);
@@ -130,7 +155,7 @@ describe("rescheduleCard", () => {
 
   it("counts the new interval from the last review, not from today", () => {
     const card = reviewed();
-    const next = rescheduleCard(card, 0.7, now);
+    const next = rescheduleCard(card, at(0.7), now);
     const days = (next?.scheduled_days ?? 0) * 24 * 60 * 60 * 1000;
     expect(next?.due.getTime()).toBe((card.last_review?.getTime() ?? 0) + days);
   });
@@ -138,14 +163,14 @@ describe("rescheduleCard", () => {
   it("says there is nothing to do when the target has not changed", () => {
     // What keeps a second run from rewriting every file it just wrote.
     const card = reviewed(0.9);
-    expect(rescheduleCard(card, 0.9, now)).toBeNull();
+    expect(rescheduleCard(card, at(0.9), now)).toBeNull();
   });
 
   it("does not touch a card that is not in the review state", () => {
     // A new card is due now by definition; learning steps are fixed minutes that
     // retention has no say in.
-    expect(rescheduleCard(newCard(now), 0.7, now)).toBeNull();
-    const learning = review(newCard(now), "good", 0.9, now);
-    expect(rescheduleCard(learning, 0.7, now)).toBeNull();
+    expect(rescheduleCard(newCard(now), at(0.7), now)).toBeNull();
+    const learning = review(newCard(now), "good", at(0.9), now);
+    expect(rescheduleCard(learning, at(0.7), now)).toBeNull();
   });
 });

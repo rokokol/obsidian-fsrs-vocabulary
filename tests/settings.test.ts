@@ -146,6 +146,22 @@ describe("migrateSettings", () => {
   it("passes everything else through untouched", () => {
     expect(migrateSettings({ fsrsRetention: 0.8 })).toEqual({ fsrsRetention: 0.8 });
   });
+
+  it("keeps a full set of FSRS-6 weights", () => {
+    const weights = Array.from({ length: 21 }, (_, i) => i / 10);
+    expect(migrateSettings({ fsrsWeights: weights })).toEqual({ fsrsWeights: weights });
+  });
+
+  it("falls back to the default weights for a set the scheduler cannot use", () => {
+    // `data.json` is a plain file; weights of another FSRS version, or a hand edit,
+    // must not reach the scheduler, which would throw on every grade.
+    const short = Array.from({ length: 19 }, () => 1);
+    const broken = [...Array.from({ length: 20 }, () => 1), Number.NaN];
+    const text = Array.from({ length: 21 }, () => "1") as unknown as number[];
+    for (const fsrsWeights of [short, broken, text]) {
+      expect(migrateSettings({ fsrsWeights })).toEqual({ fsrsWeights: null });
+    }
+  });
 });
 
 describe("clampRemindMinutes", () => {

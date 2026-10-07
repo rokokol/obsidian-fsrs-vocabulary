@@ -12,7 +12,7 @@ function options(overrides: Partial<ReviewOptions> = {}): ReviewOptions {
 
 /** A card scheduled into the future, i.e. not due at NOW. */
 function scheduled(): ReturnType<typeof newCard> {
-  return review(newCard(NOW), "easy", 0.9, NOW);
+  return review(newCard(NOW), "easy", { retention: 0.9, weights: null }, NOW);
 }
 
 describe("selectsCard", () => {

@@ -18,6 +18,7 @@ import {
   encodeCard,
   newCardId,
   rescheduleCard,
+  type Scheduling,
 } from "../model/srs";
 import { updateWordsTable } from "../obsidian/dictionaryFile";
 
@@ -40,7 +41,7 @@ export interface RescheduleResult {
 export async function rescheduleAll(
   app: App,
   files: readonly TFile[],
-  retention: number,
+  scheduling: Scheduling,
   now: Date = new Date(),
 ): Promise<RescheduleResult> {
   const result: RescheduleResult = { moved: 0, files: 0, failed: [] };
@@ -54,7 +55,7 @@ export async function rescheduleAll(
           const cell = row[SRS_COLUMN] ?? "";
           const card = decodeCard(cell);
           if (!card) continue;
-          const next = rescheduleCard(card, retention, now);
+          const next = rescheduleCard(card, scheduling, now);
           if (!next) continue;
           row[SRS_COLUMN] = encodeCard(next, cardIdFromCell(cell) ?? newCardId());
           if (hasDue) row[DUE_COLUMN] = dueDateString(next);

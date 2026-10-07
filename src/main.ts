@@ -17,6 +17,7 @@ import { tableCards } from "./model/cards";
 import { countedDictionaries, type DictionaryConfig } from "./model/dictionaryConfig";
 import type { ReviewLogEntry } from "./model/history";
 import type { IconicIcon } from "./model/iconic";
+import type { Scheduling } from "./model/srs";
 import { DictionaryCache } from "./obsidian/cache";
 import { deviceId, devicePlatform } from "./obsidian/device";
 import {
@@ -631,12 +632,17 @@ export default class FsrsVocabularyPlugin extends Plugin {
   /** How review sessions started from here should behave. */
   reviewPrefs(): ReviewPrefs {
     return {
-      retention: this.settings.fsrsRetention,
+      scheduling: this.scheduling(),
       keepQuestion: this.settings.keepQuestionOnReveal,
       logReview: (entry) => {
         this.logReview(entry);
       },
     };
+  }
+
+  /** The target retention and the weights every schedule is computed with. */
+  scheduling(): Scheduling {
+    return { retention: this.settings.fsrsRetention, weights: this.settings.fsrsWeights };
   }
 
   /** The plugin's own folder, where the review logs live. */
@@ -910,7 +916,8 @@ export default class FsrsVocabularyPlugin extends Plugin {
       new Notice("No dictionaries to reschedule.");
       return;
     }
-    const retention = this.settings.fsrsRetention;
+    const scheduling = this.scheduling();
+    const retention = scheduling.retention;
     new ConfirmModal(
       this.app,
       `Recompute due dates in ${dictionaries(files.length)} for a target retention of ` +
@@ -918,13 +925,14 @@ export default class FsrsVocabularyPlugin extends Plugin {
         "knows about your memory is not changed.",
       "Recompute",
       () => {
-        void this.runReschedule(files, retention);
+        void this.runReschedule(files, scheduling);
       },
     ).open();
   }
 
-  private async runReschedule(files: TFile[], retention: number): Promise<void> {
-    const result = await rescheduleAll(this.app, files, retention);
+  private async runReschedule(files: TFile[], scheduling: Scheduling): Promise<void> {
+    const retention = scheduling.retention;
+    const result = await rescheduleAll(this.app, files, scheduling);
     this.dueTracker.invalidateAll();
     this.refreshRendered();
     const failed =

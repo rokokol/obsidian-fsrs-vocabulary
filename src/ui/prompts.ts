@@ -5,6 +5,7 @@ import { appendWord, appendWords, contentColumnsOf } from "../commands/dictionar
 import { contentColumns } from "../model/dictionary";
 import { emptyConfig, type ReviewOrder } from "../model/dictionaryConfig";
 import type { ReviewLogEntry } from "../model/history";
+import type { Scheduling } from "../model/srs";
 import { readDictionary, type DictionaryDoc } from "../obsidian/dictionaryFile";
 import { gatherCards, type GatherResult, type ResolveOptions } from "../review/collect";
 import { applySlice, quickOptions, shuffle, type ReviewSlice } from "../review/options";
@@ -41,8 +42,8 @@ export function promptImportWords(
 
 /** Session behaviour that comes from the plugin settings, not the dictionary. */
 export interface ReviewPrefs {
-  /** FSRS target retention. */
-  retention: number;
+  /** FSRS target retention and weights. */
+  scheduling: Scheduling;
   /** Whether the answer joins the question on screen instead of replacing it. */
   keepQuestion: boolean;
   /** Called once per grade that reached the disk, for the review log. */
