@@ -213,6 +213,12 @@ const DAY_MS = 24 * 60 * 60 * 1000;
  * one from the stability already stored: the memory model is untouched, only the
  * interval derived from it.
  *
+ * New weights are the other reason to recompute, and they change the memory state
+ * itself: the stability a card's history leads to. `memory` is that state, replayed
+ * from the review log under the new weights; without it the stored one is kept, and
+ * only the interval moves. At a retention of 0.9 that interval cannot move at all,
+ * since stability is defined as the time recall takes to fall to 90%.
+ *
  * Only a card in the review state is touched. A new card is due now by definition,
  * and learning and relearning steps are fixed minutes that retention has no say in;
  * moving those would be inventing a schedule rather than restating one.
@@ -221,20 +227,35 @@ export function rescheduleCard(
   card: Card,
   scheduling: Scheduling,
   now: Date = new Date(),
+  memory: MemoryState | null = null,
 ): Card | null {
   if (card.state !== State.Review || !card.last_review) return null;
+  const stability = memory ? round(memory.stability) : card.stability;
+  const difficulty = memory ? round(memory.difficulty) : card.difficulty;
   const elapsed = Math.max(0, (now.getTime() - card.last_review.getTime()) / DAY_MS);
   // `elapsed` only reaches the interval through FSRS's fuzz, which `scheduler` leaves
   // at its default of off — so the same card gives the same answer today and next
   // month, and a card that did not move is skipped below. Turning fuzz on would make
   // that skip stop firing and this command rewrite every card, every run.
-  const days = scheduler(scheduling).next_interval(card.stability, Math.round(elapsed));
-  if (days === card.scheduled_days) return null;
+  const days = scheduler(scheduling).next_interval(stability, Math.round(elapsed));
+  // Compared at the precision the cell stores, so a replay that lands where the
+  // stored state already is does not rewrite the cell.
+  const same =
+    round(stability) === round(card.stability) && round(difficulty) === round(card.difficulty);
+  if (same && days === card.scheduled_days) return null;
   return {
     ...card,
+    stability,
+    difficulty,
     scheduled_days: days,
     due: new Date(card.last_review.getTime() + days * DAY_MS),
   };
+}
+
+/** What FSRS knows about one memory. */
+export interface MemoryState {
+  stability: number;
+  difficulty: number;
 }
 
 /** Whether the card is due for review at `now`. */

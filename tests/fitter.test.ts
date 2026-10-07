@@ -25,6 +25,8 @@ interface Harness {
   deps: FitterDeps;
   state: { weights: number[] | null; fit: FitRecord | null };
   fits: number;
+  /** Weights handed to `weightsChanged`, in order. */
+  changed: (number[] | null)[];
   setHistory: (entries: ReviewLogEntry[]) => void;
 }
 
@@ -41,7 +43,8 @@ function harness(
   const h: Harness = {
     state: { weights: null, fit: null },
     fits: 0,
-    setHistory: (next) => {
+    changed: [] as (number[] | null)[],
+    setHistory: (next: ReviewLogEntry[]) => {
       entries = next;
     },
   } as Harness;
@@ -54,6 +57,12 @@ function harness(
     current: () => h.state,
     save: (weights, fit) => {
       h.state = { weights, fit };
+      return Promise.resolve();
+    },
+    weightsChanged: (weights) => {
+      // Saved first: the recompute reads the weights from the settings.
+      expect(h.state.weights).toEqual(weights);
+      h.changed.push(weights);
       return Promise.resolve();
     },
     now: () => 12345,
@@ -135,6 +144,34 @@ describe("WeightFitter", () => {
     await expect(h.fitter.fitIfDue()).rejects.toThrow("no worker");
     expect(await h.fitter.fitIfDue()).toBeNull();
     expect(h.fits).toBe(1);
+  });
+
+  it("reports adopted weights once they are saved, so the schedule can follow", async () => {
+    const h = harness();
+    h.setHistory(history(400));
+    await h.fitter.fitNow();
+    expect(h.changed).toEqual([NEW_WEIGHTS]);
+  });
+
+  it("reports nothing when the fit kept the weights in use", async () => {
+    const h = harness((items) => ({ status: "kept", items, lossBefore: 0.4, lossAfter: 0.5, weights: null }));
+    h.setHistory(history(400));
+    await h.fitter.fitNow();
+    await h.fitter.fitNow();
+    expect(h.changed).toEqual([]);
+  });
+
+  it("resets to the default weights, keeps the fit record and reports the change", async () => {
+    const h = harness();
+    h.setHistory(history(400));
+    await h.fitter.fitNow();
+    const record = h.state.fit;
+    await h.fitter.reset();
+    expect(h.state).toEqual({ weights: null, fit: record });
+    expect(h.changed).toEqual([NEW_WEIGHTS, null]);
+    // The record still counts the items already fitted, so no automatic fit brings
+    // the reset weights straight back.
+    expect(await h.fitter.fitIfDue()).toBeNull();
   });
 
   it("counts what the settings tab shows", async () => {

@@ -23,7 +23,12 @@ export interface FitterDeps {
   /** The weights in use and the last fit's record. */
   current(): { weights: number[] | null; fit: FitRecord | null };
   /** Store the weights to use and the record of the fit that chose them. */
-  save(weights: number[] | null, fit: FitRecord): Promise<void>;
+  save(weights: number[] | null, fit: FitRecord | null): Promise<void>;
+  /**
+   * The weights in use changed and are saved: bring the stored schedules into line.
+   * Called on this device only, the one that adopted or reset them.
+   */
+  weightsChanged(weights: number[] | null): Promise<void>;
   now(): number;
 }
 
@@ -97,6 +102,17 @@ export class WeightFitter {
     };
     const adopted = outcome.status === "adopted" ? outcome.weights : null;
     await this.deps.save(adopted ?? weights, record);
+    if (adopted) await this.deps.weightsChanged(adopted);
     return outcome;
+  }
+
+  /**
+   * Go back to the default weights. The fit record stays, so the next automatic fit
+   * waits for new reviews rather than bringing the same weights straight back.
+   */
+  async reset(): Promise<void> {
+    await this.running?.catch(() => undefined);
+    await this.deps.save(null, this.deps.current().fit);
+    await this.deps.weightsChanged(null);
   }
 }

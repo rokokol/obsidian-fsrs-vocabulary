@@ -120,7 +120,7 @@ Review scope (the active note or the whole vault) is a plugin setting; in vault 
 
 FSRS starts from weights fitted to many people's reviews. Every grade you record is also kept in a review log in the plugin's folder, one file per device so a file sync never has two devices writing the same file. Once the log is long enough, the plugin fits the weights to your own reviews in the background, on desktop and on mobile, and fits them again as more reviews come in. New weights replace the ones in use only when they predict your recent reviews better; one set covers every dictionary
 
-The **Memory model** section of the settings shows how many reviews are logged, when the last fit ran and how well the weights in use and the new fit predicted your reviews. **Optimize now** fits right away, and **Reset to default weights** goes back to the defaults. New weights apply from each card's next review; the recompute command above brings the dates already on disk into line
+The **Memory model** section of the settings shows how many reviews are logged, when the last fit ran and how well the weights in use and the new fit predicted your reviews. **Optimize now** fits right away, and **Reset to default weights** goes back to the defaults. Whenever the weights change, on the device that changed them, every dictionary's due dates are recomputed for the new model, and a notice says how many cards moved
 
 ## Stats
 

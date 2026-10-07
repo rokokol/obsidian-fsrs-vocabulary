@@ -10,14 +10,15 @@ import {
   type ViewState,
   WorkspaceLeaf,
 } from "obsidian";
-import { State } from "ts-fsrs";
+import { State, type Card } from "ts-fsrs";
 import { createDictionaryNote } from "./commands/dictionaryCommands";
 import { rescheduleAll } from "./commands/reschedule";
 import { tableCards } from "./model/cards";
 import { countedDictionaries, type DictionaryConfig } from "./model/dictionaryConfig";
 import type { ReviewLogEntry } from "./model/history";
 import type { IconicIcon } from "./model/iconic";
-import type { Scheduling } from "./model/srs";
+import { memoryFromLog, replayIndex } from "./model/replay";
+import type { MemoryState, Scheduling } from "./model/srs";
 import { DictionaryCache } from "./obsidian/cache";
 import { deviceId, devicePlatform } from "./obsidian/device";
 import {
@@ -129,6 +130,9 @@ export default class FsrsVocabularyPlugin extends Plugin {
         this.settings.fsrsFit = fit;
         await this.saveSettings();
         for (const listener of this.fitListeners) listener();
+      },
+      weightsChanged: async (weights) => {
+        await this.rescheduleForWeights(history, weights);
       },
       now: () => Date.now(),
     });
@@ -985,20 +989,49 @@ export default class FsrsVocabularyPlugin extends Plugin {
     ).open();
   }
 
-  private async runReschedule(files: TFile[], scheduling: Scheduling): Promise<void> {
-    const retention = scheduling.retention;
-    const result = await rescheduleAll(this.app, files, scheduling);
+  private async runReschedule(
+    files: TFile[],
+    scheduling: Scheduling,
+    memoryOf?: (id: string | null, card: Card) => MemoryState | null,
+    unchanged = `Every schedule already matches a retention of ${scheduling.retention.toString()}.`,
+  ): Promise<void> {
+    const result = await rescheduleAll(this.app, files, scheduling, new Date(), memoryOf);
     this.dueTracker.invalidateAll();
     this.refreshRendered();
     const failed =
       result.failed.length > 0 ? ` ${result.failed.length.toString()} could not be written.` : "";
     if (result.moved === 0) {
-      new Notice(`Every schedule already matches a retention of ${retention.toString()}.${failed}`);
+      new Notice(`${unchanged}${failed}`);
       return;
     }
     new Notice(
       `Moved ${result.moved.toString()} card${plural(result.moved)} in ` +
         `${dictionaries(result.files)}.${failed}`,
+    );
+  }
+
+  /**
+   * Bring every stored schedule into line with weights just adopted or reset, on the
+   * device that changed them. The recompute command's own pass, with each card's
+   * memory replayed from the review log under the new weights where the log holds the
+   * card's whole history; other cards keep their stored memory. Every dictionary,
+   * muted or not, as with the command.
+   */
+  private async rescheduleForWeights(
+    history: ReviewHistory,
+    weights: readonly number[] | null,
+  ): Promise<void> {
+    const files = this.cache.files();
+    if (files.length === 0) return;
+    const logs = replayIndex((await history.readAll()).entries);
+    await this.runReschedule(
+      files,
+      { retention: this.settings.fsrsRetention, weights },
+      (id, card) => {
+        const log = id === null ? undefined : logs.get(id);
+        return log ? memoryFromLog(log, card, weights) : null;
+      },
+      "No due date needed to move for the new memory model.",
     );
   }
 

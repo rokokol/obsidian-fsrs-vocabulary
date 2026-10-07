@@ -10,6 +10,7 @@
  */
 
 import type { App, TFile } from "obsidian";
+import type { Card } from "ts-fsrs";
 import { SRS_COLUMN, DUE_COLUMN } from "../model/dictionary";
 import {
   cardIdFromCell,
@@ -18,6 +19,7 @@ import {
   encodeCard,
   newCardId,
   rescheduleCard,
+  type MemoryState,
   type Scheduling,
 } from "../model/srs";
 import { updateWordsTable } from "../obsidian/dictionaryFile";
@@ -37,12 +39,16 @@ export interface RescheduleResult {
  * A dictionary is only written when something in it actually moves — the mutator
  * vetoes the write otherwise — so running this twice in a row touches nothing the
  * second time, and a vault whose retention has not changed is left alone entirely.
+ *
+ * `memoryOf` gives a card's memory state recomputed under new weights, or null to
+ * keep the stored one; see `rescheduleCard`.
  */
 export async function rescheduleAll(
   app: App,
   files: readonly TFile[],
   scheduling: Scheduling,
   now: Date = new Date(),
+  memoryOf: (id: string | null, card: Card) => MemoryState | null = () => null,
 ): Promise<RescheduleResult> {
   const result: RescheduleResult = { moved: 0, files: 0, failed: [] };
   for (const file of files) {
@@ -55,9 +61,10 @@ export async function rescheduleAll(
           const cell = row[SRS_COLUMN] ?? "";
           const card = decodeCard(cell);
           if (!card) continue;
-          const next = rescheduleCard(card, scheduling, now);
+          const id = cardIdFromCell(cell);
+          const next = rescheduleCard(card, scheduling, now, memoryOf(id, card));
           if (!next) continue;
-          row[SRS_COLUMN] = encodeCard(next, cardIdFromCell(cell) ?? newCardId());
+          row[SRS_COLUMN] = encodeCard(next, id ?? newCardId());
           if (hasDue) row[DUE_COLUMN] = dueDateString(next);
           moved += 1;
         }

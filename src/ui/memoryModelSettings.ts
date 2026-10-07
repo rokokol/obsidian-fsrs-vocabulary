@@ -80,7 +80,7 @@ export function renderMemoryModel(containerEl: HTMLElement, plugin: FsrsVocabula
   new Setting(containerEl)
     .setName("Reset to default weights")
     .setDesc(
-      "Schedule with the default weights again. The next automatic fit waits for new reviews, as after any fit.",
+      "Schedule with the default weights again, and move the due dates to match. The next automatic fit waits for new reviews, as after any fit.",
     )
     .addButton((button) => {
       button
@@ -92,9 +92,8 @@ export function renderMemoryModel(containerEl: HTMLElement, plugin: FsrsVocabula
             "Schedule with the default weights instead of the ones fitted to your reviews?",
             "Reset",
             () => {
-              plugin.settings.fsrsWeights = null;
-              void plugin.saveSettings().then(() => {
-                for (const listener of plugin.fitListeners) listener();
+              fitter.reset().catch((err: unknown) => {
+                new Notice(`Could not reset the weights: ${errorMessage(err)}`);
               });
             },
           ).open();

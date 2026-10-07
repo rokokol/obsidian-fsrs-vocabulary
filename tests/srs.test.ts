@@ -173,4 +173,37 @@ describe("rescheduleCard", () => {
     const learning = review(newCard(now), "good", at(0.9), now);
     expect(rescheduleCard(learning, at(0.7), now)).toBeNull();
   });
+
+  it("moves a card when the shape of the forgetting curve changes", () => {
+    // The last weight shapes the curve, which decides how long a stored stability
+    // lasts at a retention other than 0.9. At 0.9 itself it cannot: stability is
+    // defined as the time recall takes to fall to 90%.
+    const card = reviewed(0.8);
+    const weights = [...default_w];
+    weights[20] = 0.5;
+    const moved = rescheduleCard(card, { retention: 0.8, weights }, now);
+    expect(moved?.due.getTime()).not.toBe(card.due.getTime());
+    expect(rescheduleCard(card, { retention: 0.8, weights: [...default_w] }, now)).toBeNull();
+  });
+
+  it("takes a recomputed memory state and schedules from it", () => {
+    // New weights change the stability a card's history leads to; at 0.9 that is
+    // the only way a change of weights can move a date.
+    const card = reviewed();
+    const memory = { stability: card.stability * 3, difficulty: 2 };
+    const moved = rescheduleCard(card, at(0.9), now, memory);
+    expect(moved?.stability).toBeCloseTo(memory.stability, 3);
+    expect(moved?.difficulty).toBeCloseTo(memory.difficulty, 3);
+    expect(moved?.scheduled_days).toBeGreaterThan(card.scheduled_days);
+    expect(rescheduleCard(card, at(0.9), now, { stability: card.stability, difficulty: card.difficulty })).toBeNull();
+  });
+
+  it("stores a recomputed memory even when the date stays", () => {
+    // The next grade starts from the stored memory, so a new difficulty matters
+    // even when the interval it leads to happens to round to the same day.
+    const card = reviewed();
+    const moved = rescheduleCard(card, at(0.9), now, { stability: card.stability, difficulty: 7 });
+    expect(moved?.difficulty).toBe(7);
+    expect(moved?.scheduled_days).toBe(card.scheduled_days);
+  });
 });
