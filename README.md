@@ -116,6 +116,12 @@ Review scope (the active note or the whole vault) is a plugin setting; in vault 
 
 **Target retention** decides how long an interval FSRS is willing to give, and it is applied when a card is graded — so changing it leaves every date already on disk where it was. **Recompute schedule for current retention** brings them into line in one pass: it recomputes each interval from the stability already stored, moves only cards in the review state, and never touches what the plugin knows about your memory. It asks first, and says how much it moved
 
+### Your own memory model
+
+FSRS starts from weights fitted to many people's reviews. Every grade you record is also kept in a review log in the plugin's folder, one file per device so a file sync never has two devices writing the same file. Once the log is long enough, the plugin fits the weights to your own reviews in the background, on desktop and on mobile, and fits them again as more reviews come in. New weights replace the ones in use only when they predict your recent reviews better; one set covers every dictionary
+
+The **Memory model** section of the settings shows how many reviews are logged, when the last fit ran and how well the weights in use and the new fit predicted your reviews. **Optimize now** fits right away, and **Reset to default weights** goes back to the defaults. New weights apply from each card's next review; the recompute command above brings the dates already on disk into line
+
 ## Stats
 
 The interactive view shows a stats panel (Total / Due / New / Learning / Review) automatically. Every tile starts the session it counts: `Due` reviews what is scheduled, `Total` is practice over every word without touching the schedule, and `New`/`Learning`/`Review` draw from all cards in that FSRS state. To embed stats in **another** note, use a code block:
