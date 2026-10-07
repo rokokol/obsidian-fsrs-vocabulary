@@ -7,6 +7,7 @@ import {
   type Card,
   type Grade,
 } from "ts-fsrs";
+import { isRandomId, randomId } from "../util";
 
 /** The four review grades exposed in the UI. */
 export type ReviewRating = "again" | "hard" | "good" | "easy";
@@ -19,6 +20,11 @@ const GRADE: Record<ReviewRating, Grade> = {
   good: Rating.Good,
   easy: Rating.Easy,
 };
+
+/** The FSRS grade of a rating, as the review log stores it: 1 again … 4 easy. */
+export function gradeOf(rating: ReviewRating): Grade {
+  return GRADE[rating];
+}
 
 /** Compact on-disk shape stored in the hidden `srs` column (JSON, no pipes). */
 interface StoredSrs {
@@ -41,11 +47,8 @@ export function newCard(now: Date = new Date()): Card {
   return createEmptyCard(now);
 }
 
-/** What a card id may look like: short, and nothing a table cell or JSON escapes. */
-const CARD_ID_RE = /^[a-z0-9]{1,32}$/;
-
 /**
- * A fresh card id: ten base-36 characters, about 51 random bits.
+ * A fresh card id.
  *
  * The id ties a card's logged reviews together, so it has to survive everything
  * that can happen to a row — the note renamed or moved, the word edited, rows
@@ -53,18 +56,14 @@ const CARD_ID_RE = /^[a-z0-9]{1,32}$/;
  * those, which is why the id lives there and not in a path or a row key.
  */
 export function newCardId(): string {
-  const bytes = new Uint8Array(8);
-  crypto.getRandomValues(bytes);
-  let value = 0n;
-  for (const byte of bytes) value = (value << 8n) | BigInt(byte);
-  return value.toString(36).padStart(10, "0").slice(-10);
+  return randomId();
 }
 
 /** The id stored in an `srs` cell, or null when the cell has none worth trusting. */
 export function cardIdFromCell(cell: string): string | null {
   const raw = parseCell(cell);
   const id = raw?.["i"];
-  return typeof id === "string" && CARD_ID_RE.test(id) ? id : null;
+  return isRandomId(id) ? id : null;
 }
 
 /** Serialize a card and its id into the compact `srs` cell value. */

@@ -4,6 +4,7 @@ import { Notice, type App, type TFile } from "obsidian";
 import { appendWord, appendWords, contentColumnsOf } from "../commands/dictionaryCommands";
 import { contentColumns } from "../model/dictionary";
 import { emptyConfig, type ReviewOrder } from "../model/dictionaryConfig";
+import type { ReviewLogEntry } from "../model/history";
 import { readDictionary, type DictionaryDoc } from "../obsidian/dictionaryFile";
 import { gatherCards, type GatherResult, type ResolveOptions } from "../review/collect";
 import { applySlice, quickOptions, shuffle, type ReviewSlice } from "../review/options";
@@ -44,6 +45,8 @@ export interface ReviewPrefs {
   retention: number;
   /** Whether the answer joins the question on screen instead of replacing it. */
   keepQuestion: boolean;
+  /** Called once per grade that reached the disk, for the review log. */
+  logReview: (entry: ReviewLogEntry) => void;
 }
 
 export interface ReviewSession {

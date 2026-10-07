@@ -97,8 +97,13 @@ export async function gatherCards(
   return { items, order, pool, filtered };
 }
 
-/** Persist a reviewed card back into its row's `srs` (and mirror `due`). */
-export async function writeReview(app: App, item: ReviewItem, card: Card): Promise<void> {
+/**
+ * Persist a reviewed card back into its row's `srs` (and mirror `due`). Says
+ * whether it did: a row that went away since the session gathered it is not
+ * written, and the review then did not happen as far as the log is concerned.
+ */
+export async function writeReview(app: App, item: ReviewItem, card: Card): Promise<boolean> {
+  let written = false;
   await updateWordsTable(app, item.file, (table) => {
     if (!table.headers.includes(SRS_COLUMN)) table.headers.push(SRS_COLUMN);
     if (!table.headers.includes(DUE_COLUMN)) table.headers.push(DUE_COLUMN);
@@ -107,6 +112,8 @@ export async function writeReview(app: App, item: ReviewItem, card: Card): Promi
     if (!row) return false;
     row[SRS_COLUMN] = encodeCard(card, item.cardId);
     row[DUE_COLUMN] = dueDateString(card);
+    written = true;
     return true;
   });
+  return written;
 }

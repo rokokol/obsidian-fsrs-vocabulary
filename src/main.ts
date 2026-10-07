@@ -15,14 +15,17 @@ import { createDictionaryNote } from "./commands/dictionaryCommands";
 import { rescheduleAll } from "./commands/reschedule";
 import { tableCards } from "./model/cards";
 import { countedDictionaries, type DictionaryConfig } from "./model/dictionaryConfig";
+import type { ReviewLogEntry } from "./model/history";
 import type { IconicIcon } from "./model/iconic";
 import { DictionaryCache } from "./obsidian/cache";
+import { deviceId, devicePlatform } from "./obsidian/device";
 import {
   dictionaryConfig,
   isDictionaryFile,
   readDictionary,
   updateDictionaryConfig,
 } from "./obsidian/dictionaryFile";
+import { ReviewHistory } from "./obsidian/history";
 import { forgetIconicIcons, readIconicIcons } from "./obsidian/iconic";
 import { parseStatsBlock, parseWikilink } from "./render/blocks";
 import { renderDictionaryEmbeds } from "./render/dictionaryEmbed";
@@ -91,9 +94,17 @@ export default class FsrsVocabularyPlugin extends Plugin {
   private settled = false;
   /** How to redraw each `fsrs-vocabulary-stats` block and dictionary embed on screen. */
   private readonly statsBlocks = new Set<() => void>();
+  /** The review log; set first thing in `onload`, before any session can start. */
+  private history: ReviewHistory | null = null;
 
   override async onload(): Promise<void> {
     await this.loadSettings();
+    this.history = new ReviewHistory(
+      this.app.vault.adapter,
+      this.pluginDir(),
+      devicePlatform(),
+      deviceId(this.app),
+    );
     this.addSettingTab(new FsrsVocabularySettingTab(this.app, this));
 
     this.registerView(DICTIONARY_VIEW_TYPE, (leaf) => new DictionaryEditorView(leaf, this));
@@ -622,7 +633,26 @@ export default class FsrsVocabularyPlugin extends Plugin {
     return {
       retention: this.settings.fsrsRetention,
       keepQuestion: this.settings.keepQuestionOnReveal,
+      logReview: (entry) => {
+        this.logReview(entry);
+      },
     };
+  }
+
+  /** The plugin's own folder, where the review logs live. */
+  private pluginDir(): string {
+    return this.manifest.dir ?? `${this.app.vault.configDir}/plugins/${this.manifest.id}`;
+  }
+
+  /**
+   * Add a graded review to this device's log. A failed append is reported and
+   * otherwise ignored: the grade itself is already on disk, and stopping the
+   * session over a missing log line would cost more than the line is worth.
+   */
+  private logReview(entry: ReviewLogEntry): void {
+    this.history?.append(entry).catch((err: unknown) => {
+      console.error("[fsrs-vocabulary] could not log a review", err);
+    });
   }
 
   /** Flip a dictionary's mute flag; muted dictionaries stay out of reminders. */

@@ -1,5 +1,5 @@
 import { Component, Modal, type App } from "obsidian";
-import { previewDueDates, review, REVIEW_RATINGS, type ReviewRating } from "../model/srs";
+import { gradeOf, previewDueDates, review, REVIEW_RATINGS, type ReviewRating } from "../model/srs";
 import { isBlankCell } from "../model/word";
 import { renderCellValue } from "../render/cellValue";
 import { writeReview, type ReviewItem } from "../review/collect";
@@ -208,8 +208,16 @@ export class ReviewModal extends Modal {
     if (!item?.record || this.grading) return;
     this.grading = true;
     try {
-      const next = review(item.card, rating, this.prefs.retention);
-      await writeReview(this.app, item, next);
+      const now = new Date();
+      const next = review(item.card, rating, this.prefs.retention, now);
+      if (await writeReview(this.app, item, next)) {
+        this.prefs.logReview({
+          c: item.cardId,
+          t: now.getTime(),
+          r: gradeOf(rating),
+          s: item.card.state,
+        });
+      }
       this.index += 1;
       this.renderCard();
     } finally {
