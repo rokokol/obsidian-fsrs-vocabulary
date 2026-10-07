@@ -3,7 +3,7 @@ import type { Card } from "ts-fsrs";
 import { isCardRow } from "../model/cards";
 import { DUE_COLUMN, SRS_COLUMN } from "../model/dictionary";
 import type { ReviewOrder, ReviewPool } from "../model/dictionaryConfig";
-import { cardFromCell, dueDateString, encodeCard } from "../model/srs";
+import { cardFromCell, cardIdFromCell, dueDateString, encodeCard, newCardId } from "../model/srs";
 import { readDictionary, updateWordsTable, type DictionaryDoc } from "../obsidian/dictionaryFile";
 import { selectsCard, type ReviewOptions } from "./options";
 
@@ -23,6 +23,11 @@ export interface ReviewItem {
   /** Raw markdown cell text keyed by content column. */
   fields: Record<string, string>;
   card: Card;
+  /**
+   * The card's id: the one in its `srs` cell, or a fresh one for a card that has
+   * none yet. A fresh id reaches the disk with the first grade.
+   */
+  cardId: string;
 }
 
 /** Decides how a given dictionary is reviewed, from its own headers and config. */
@@ -72,7 +77,8 @@ export async function gatherCards(
 
     rows.forEach((row, rowIndex) => {
       if (!isCardRow(row, options.frontColumns)) return;
-      const card = cardFromCell(row[SRS_COLUMN] ?? "", now);
+      const cell = row[SRS_COLUMN] ?? "";
+      const card = cardFromCell(cell, now);
       if (!selectsCard(card, options, now)) return;
       const fields: Record<string, string> = {};
       for (const col of columns) fields[col] = row[col] ?? "";
@@ -84,6 +90,7 @@ export async function gatherCards(
         record: options.record,
         fields,
         card,
+        cardId: cardIdFromCell(cell) ?? newCardId(),
       });
     });
   }
@@ -98,7 +105,7 @@ export async function writeReview(app: App, item: ReviewItem, card: Card): Promi
     const row = table.rows[item.rowIndex];
     // The row moved or went away between the session gathering it and this write.
     if (!row) return false;
-    row[SRS_COLUMN] = encodeCard(card);
+    row[SRS_COLUMN] = encodeCard(card, item.cardId);
     row[DUE_COLUMN] = dueDateString(card);
     return true;
   });

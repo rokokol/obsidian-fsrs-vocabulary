@@ -11,7 +11,14 @@
 
 import type { App, TFile } from "obsidian";
 import { SRS_COLUMN, DUE_COLUMN } from "../model/dictionary";
-import { decodeCard, dueDateString, encodeCard, rescheduleCard } from "../model/srs";
+import {
+  cardIdFromCell,
+  decodeCard,
+  dueDateString,
+  encodeCard,
+  newCardId,
+  rescheduleCard,
+} from "../model/srs";
 import { updateWordsTable } from "../obsidian/dictionaryFile";
 
 export interface RescheduleResult {
@@ -44,11 +51,12 @@ export async function rescheduleAll(
         if (!table.headers.includes(SRS_COLUMN)) return false;
         const hasDue = table.headers.includes(DUE_COLUMN);
         for (const row of table.rows) {
-          const card = decodeCard(row[SRS_COLUMN] ?? "");
+          const cell = row[SRS_COLUMN] ?? "";
+          const card = decodeCard(cell);
           if (!card) continue;
           const next = rescheduleCard(card, retention, now);
           if (!next) continue;
-          row[SRS_COLUMN] = encodeCard(next);
+          row[SRS_COLUMN] = encodeCard(next, cardIdFromCell(cell) ?? newCardId());
           if (hasDue) row[DUE_COLUMN] = dueDateString(next);
           moved += 1;
         }

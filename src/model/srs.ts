@@ -31,6 +31,7 @@ interface StoredSrs {
   d: string; // due (ISO)
   t?: string; // last_review (ISO)
   p?: number; // learning_steps; absent = 0, the first step
+  i: string; // card id, see `newCardId`
 }
 
 const round = (n: number): number => Math.round(n * 10000) / 10000;
@@ -40,9 +41,36 @@ export function newCard(now: Date = new Date()): Card {
   return createEmptyCard(now);
 }
 
-/** Serialize a card into the compact `srs` cell value. */
-export function encodeCard(card: Card): string {
+/** What a card id may look like: short, and nothing a table cell or JSON escapes. */
+const CARD_ID_RE = /^[a-z0-9]{1,32}$/;
+
+/**
+ * A fresh card id: ten base-36 characters, about 51 random bits.
+ *
+ * The id ties a card's logged reviews together, so it has to survive everything
+ * that can happen to a row — the note renamed or moved, the word edited, rows
+ * reordered. Only the `srs` cell itself travels with the card through all of
+ * those, which is why the id lives there and not in a path or a row key.
+ */
+export function newCardId(): string {
+  const bytes = new Uint8Array(8);
+  crypto.getRandomValues(bytes);
+  let value = 0n;
+  for (const byte of bytes) value = (value << 8n) | BigInt(byte);
+  return value.toString(36).padStart(10, "0").slice(-10);
+}
+
+/** The id stored in an `srs` cell, or null when the cell has none worth trusting. */
+export function cardIdFromCell(cell: string): string | null {
+  const raw = parseCell(cell);
+  const id = raw?.["i"];
+  return typeof id === "string" && CARD_ID_RE.test(id) ? id : null;
+}
+
+/** Serialize a card and its id into the compact `srs` cell value. */
+export function encodeCard(card: Card, id: string): string {
   const stored: StoredSrs = {
+    i: id,
     s: card.state,
     r: card.reps,
     l: card.lapses,
@@ -60,6 +88,19 @@ function asNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+/** The JSON object in an `srs` cell, or null for a blank or malformed one. */
+function parseCell(cell: string): Record<string, unknown> | null {
+  const trimmed = cell.trim();
+  if (trimmed === "") return null;
+  let raw: unknown;
+  try {
+    raw = JSON.parse(trimmed);
+  } catch {
+    return null;
+  }
+  return typeof raw === "object" && raw !== null ? (raw as Record<string, unknown>) : null;
+}
+
 function asIsoDate(value: unknown): Date | null {
   if (typeof value !== "string") return null;
   const date = new Date(value);
@@ -71,16 +112,8 @@ function asIsoDate(value: unknown): Date | null {
  * empty or malformed — callers treat that as a fresh card.
  */
 export function decodeCard(cell: string): Card | null {
-  const trimmed = cell.trim();
-  if (trimmed === "") return null;
-  let raw: unknown;
-  try {
-    raw = JSON.parse(trimmed);
-  } catch {
-    return null;
-  }
-  if (typeof raw !== "object" || raw === null) return null;
-  const o = raw as Record<string, unknown>;
+  const o = parseCell(cell);
+  if (!o) return null;
 
   const s = asNumber(o["s"]);
   const r = asNumber(o["r"]);

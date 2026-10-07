@@ -33,6 +33,7 @@ Other frontmatter properties are the note's own and the plugin leaves them alone
 - **One row is one word.** The first content column is the front of the card, the other content columns are its back, from left to right. Column names are free and there can be any number of them
 - **`srs` and `due` belong to the plugin.** `srs` holds the review state, `due` the date of the next review. Write both lowercase: a column named `SRS` is an ordinary content column, and the next review adds a second schedule column beside it
 - **A new word has `srs` and `due` empty.** The plugin reads an empty `srs` as a new card. Never write or change a value in either column: the review writes them
+- **A row copied to make a new word leaves `srs` and `due` behind.** The `srs` cell carries the card's id, which ties its review history together, and two rows with one id would merge their histories
 - **Fill every content cell.** When the dictionary opens in its view, the plugin fills a blank content cell with the name of its column and drops a row with no content at all. A cell left empty on purpose comes back as `translation`
 
 To add words, append rows to the end of the table with the same columns as the header

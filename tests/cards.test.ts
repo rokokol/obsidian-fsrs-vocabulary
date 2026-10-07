@@ -6,7 +6,7 @@ import { encodeCard } from "../src/model/srs";
 const NOW = new Date("2026-01-10T00:00:00.000Z");
 
 function scheduled(due: Date, state: State = State.Review): string {
-  return encodeCard({ ...createEmptyCard(NOW), due, state });
+  return encodeCard({ ...createEmptyCard(NOW), due, state }, "c1");
 }
 
 describe("isCardRow", () => {

@@ -2,11 +2,13 @@ import type { Card } from "ts-fsrs";
 import { describe, expect, it } from "vitest";
 import {
   cardFromCell,
+  cardIdFromCell,
   decodeCard,
   dueDateString,
   encodeCard,
   isDue,
   newCard,
+  newCardId,
   rescheduleCard,
   review,
 } from "../src/model/srs";
@@ -14,7 +16,7 @@ import {
 describe("srs encode/decode", () => {
   it("round-trips a card", () => {
     const card = newCard(new Date("2026-07-07T00:00:00Z"));
-    const decoded = decodeCard(encodeCard(card));
+    const decoded = decodeCard(encodeCard(card, "a1"));
     expect(decoded).not.toBeNull();
     expect(decoded?.reps).toBe(card.reps);
     expect(decoded?.state).toBe(card.state);
@@ -27,12 +29,36 @@ describe("srs encode/decode", () => {
     const now = new Date("2026-07-07T00:00:00Z");
     const learning = review(newCard(now), "good", 0.9, now);
     expect(learning.learning_steps).toBeGreaterThan(0);
-    expect(decodeCard(encodeCard(learning))?.learning_steps).toBe(learning.learning_steps);
+    expect(decodeCard(encodeCard(learning, "a1"))?.learning_steps).toBe(learning.learning_steps);
   });
 
   it("reads a cell written before learning steps were stored as the first step", () => {
     const cell = '{"s":1,"r":1,"l":0,"S":2.3,"D":5.1,"e":0,"c":0,"d":"2026-07-07T00:10:00.000Z"}';
     expect(decodeCard(cell)?.learning_steps).toBe(0);
+  });
+
+  it("carries the card id it was written with", () => {
+    // The id is what ties a card's logged reviews together; it lives in the cell
+    // so that renaming the note or editing the word keeps it.
+    const cell = encodeCard(newCard(new Date("2026-07-07T00:00:00Z")), "k3x9q2");
+    expect(cardIdFromCell(cell)).toBe("k3x9q2");
+    expect(decodeCard(cell)).not.toBeNull();
+  });
+
+  it("has no card id in a blank, malformed or pre-id cell", () => {
+    expect(cardIdFromCell("")).toBeNull();
+    expect(cardIdFromCell("not json")).toBeNull();
+    expect(cardIdFromCell('{"s":0,"r":0,"l":0,"S":0,"D":0,"c":0,"d":"2026-07-07T00:00:00Z"}')).toBeNull();
+    expect(cardIdFromCell('{"i":42}')).toBeNull();
+    expect(cardIdFromCell('{"i":"has space"}')).toBeNull();
+  });
+
+  it("makes ids that do not repeat and fit in a cell", () => {
+    const ids = new Set(Array.from({ length: 1000 }, () => newCardId()));
+    expect(ids.size).toBe(1000);
+    for (const id of ids) {
+      expect(cardIdFromCell(encodeCard(newCard(), id))).toBe(id);
+    }
   });
 
   it("treats blank and malformed cells as new cards", () => {
