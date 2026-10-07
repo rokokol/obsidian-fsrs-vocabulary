@@ -1,5 +1,9 @@
 # Dictionary Notes
 
+[![Release](https://img.shields.io/github/v/release/rokokol/obsidian-dictionary-notes?style=for-the-badge&logo=obsidian&color=7c3aed)](https://github.com/rokokol/obsidian-dictionary-notes/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/rokokol/obsidian-dictionary-notes/total?style=for-the-badge&color=22c55e)](https://github.com/rokokol/obsidian-dictionary-notes/releases)
+[![License](https://img.shields.io/github/license/rokokol/obsidian-dictionary-notes?style=for-the-badge&color=64748b)](LICENSE)
+
 Turn plain Obsidian notes into spaced-repetition **dictionaries**
 
 A dictionary is just a markdown note: free-form theory on top, a `## Words` table below. Dictionaries open in an **interactive view** (Excalidraw-style) with an auto stats panel; the `srs`/`due` bookkeeping columns stay hidden and "Open as markdown" shows the source. They also render as a styled dictionary in normal reading mode
@@ -28,6 +32,7 @@ Custom fields are just extra columns. Frontmatter keys (graph links like `up`/`s
 - [Dashboard and shelf](#dashboard-and-shelf)
 - [Reminders](#reminders)
 - [Creating dictionaries](#creating-dictionaries)
+- [AI agents](#ai-agents)
 - [Development](#development)
 - [Roadmap](#roadmap)
 
@@ -173,6 +178,14 @@ A single dictionary can be **muted** — from its toolbar, its file menu or the 
 ## Creating dictionaries
 
 **New dictionary note** creates one in the default location for new notes. Right-clicking a folder offers **New dictionary here** instead
+
+## AI agents
+
+The repository ships an [Agent Skill](https://agentskills.io) that teaches a coding agent to create dictionaries and add words without breaking the format. Install it into the vault for any agent that reads Agent Skills:
+
+```bash
+npx skills add rokokol/obsidian-dictionary-notes
+```
 
 ## Development
 
