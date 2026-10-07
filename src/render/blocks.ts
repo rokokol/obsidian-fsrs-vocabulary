@@ -16,7 +16,7 @@ export interface StatsScope {
   includeMuted: boolean | null;
 }
 
-/** What an `obsictionary-stats` block asks for. */
+/** What an `dictionary-notes-stats` block asks for. */
 export interface StatsBlockQuery {
   /**
    * One entry per line, in the order written.
@@ -153,10 +153,10 @@ export function renderProperties(
   sourcePath: string,
 ): void {
   if (entries.length === 0) return;
-  const list = container.createDiv({ cls: "obsictionary-props" });
+  const list = container.createDiv({ cls: "dictionary-notes-props" });
   for (const [key, value] of entries) {
-    const item = list.createDiv({ cls: "obsictionary-prop" });
-    item.createSpan({ cls: "obsictionary-prop-key", text: key });
-    appendValue(item.createSpan({ cls: "obsictionary-prop-value" }), value, sourcePath);
+    const item = list.createDiv({ cls: "dictionary-notes-prop" });
+    item.createSpan({ cls: "dictionary-notes-prop-key", text: key });
+    appendValue(item.createSpan({ cls: "dictionary-notes-prop-value" }), value, sourcePath);
   }
 }

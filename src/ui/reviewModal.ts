@@ -35,7 +35,7 @@ export class ReviewModal extends Modal {
   }
 
   override onOpen(): void {
-    this.modalEl.addClass("obsictionary-review-modal");
+    this.modalEl.addClass("dictionary-notes-review-modal");
     if (this.prefs.keepQuestion) this.modalEl.addClass("is-joined");
     this.renderComponent.load();
     this.registerKeys();
@@ -92,11 +92,11 @@ export class ReviewModal extends Modal {
     for (const col of ReviewModal.filled(item, columns)) {
       const value = item.fields[col] ?? "";
       const target = labelled
-        ? container.createDiv({ cls: "obsictionary-review-field" })
+        ? container.createDiv({ cls: "dictionary-notes-review-field" })
         : container;
-      if (labelled) target.createDiv({ cls: "obsictionary-review-field-name", text: col });
+      if (labelled) target.createDiv({ cls: "dictionary-notes-review-field-name", text: col });
       const valueEl = labelled
-        ? target.createDiv({ cls: "obsictionary-review-field-value" })
+        ? target.createDiv({ cls: "dictionary-notes-review-field-value" })
         : target;
       renderCellValue(this.app, valueEl, value, item.file.path, this.renderComponent);
     }
@@ -114,18 +114,18 @@ export class ReviewModal extends Modal {
     }
 
     contentEl.createDiv({
-      cls: "obsictionary-review-progress",
+      cls: "dictionary-notes-review-progress",
       text: `${(this.index + 1).toString()} / ${this.items.length.toString()}`,
     });
 
-    const front = contentEl.createDiv({ cls: "obsictionary-review-front" });
+    const front = contentEl.createDiv({ cls: "dictionary-notes-review-front" });
     // Decide from what will actually render: a two-column question whose second
     // cell is blank should look like a one-column question, not gain a label.
     const asked = ReviewModal.filled(item, item.frontColumns);
     this.renderFields(front, item, item.frontColumns, asked.length > 1);
 
-    contentEl.createDiv({ cls: "obsictionary-review-back" });
-    const controls = contentEl.createDiv({ cls: "obsictionary-review-controls" });
+    contentEl.createDiv({ cls: "dictionary-notes-review-back" });
+    const controls = contentEl.createDiv({ cls: "dictionary-notes-review-controls" });
 
     // A card whose answer would render nothing — a question covering every column,
     // or a row with only blank answers — has nothing to hide, so skip the step.
@@ -146,8 +146,8 @@ export class ReviewModal extends Modal {
     const item = this.currentItem();
     if (!item || this.revealed) return;
 
-    const back = this.contentEl.querySelector<HTMLElement>(".obsictionary-review-back");
-    const controls = this.contentEl.querySelector<HTMLElement>(".obsictionary-review-controls");
+    const back = this.contentEl.querySelector<HTMLElement>(".dictionary-notes-review-back");
+    const controls = this.contentEl.querySelector<HTMLElement>(".dictionary-notes-review-controls");
     if (!back || !controls) return;
     this.revealed = true;
 
@@ -159,7 +159,7 @@ export class ReviewModal extends Modal {
     // place. Either way a card with nothing to show keeps its question, since
     // flipping to an empty face would just blank the modal.
     if (!this.prefs.keepQuestion && ReviewModal.filled(item, item.backColumns).length > 0) {
-      this.contentEl.querySelector<HTMLElement>(".obsictionary-review-front")?.remove();
+      this.contentEl.querySelector<HTMLElement>(".dictionary-notes-review-front")?.remove();
     }
     controls.empty();
 
@@ -177,10 +177,13 @@ export class ReviewModal extends Modal {
     const preview = previewDueDates(item.card, this.prefs.retention, now);
     for (const rating of REVIEW_RATINGS) {
       const btn = controls.createEl("button", {
-        cls: `obsictionary-rate obsictionary-rate-${rating}`,
+        cls: `dictionary-notes-rate dictionary-notes-rate-${rating}`,
       });
       btn.createSpan({ text: capitalize(rating) });
-      btn.createSpan({ cls: "obsictionary-rate-hint", text: formatInterval(now, preview[rating]) });
+      btn.createSpan({
+        cls: "dictionary-notes-rate-hint",
+        text: formatInterval(now, preview[rating]),
+      });
       btn.addEventListener("click", () => {
         void this.grade(rating);
       });
@@ -217,10 +220,10 @@ export class ReviewModal extends Modal {
   private renderDone(): void {
     const { contentEl } = this;
     contentEl.createDiv({
-      cls: "obsictionary-review-done",
+      cls: "dictionary-notes-review-done",
       text: `Review complete — ${this.items.length.toString()} cards.`,
     });
-    const controls = contentEl.createDiv({ cls: "obsictionary-review-controls" });
+    const controls = contentEl.createDiv({ cls: "dictionary-notes-review-controls" });
     const close = controls.createEl("button", { cls: "mod-cta", text: "Close" });
     close.addEventListener("click", () => {
       this.close();

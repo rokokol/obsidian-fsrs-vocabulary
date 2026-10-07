@@ -1,5 +1,5 @@
 ---
-obsictionary:
+dictionary-notes:
   presets:
     - name: Name the interval
       front:

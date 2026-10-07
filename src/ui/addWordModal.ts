@@ -50,7 +50,7 @@ export class AddWordModal extends Modal {
       });
     }
 
-    this.errorEl = contentEl.createDiv({ cls: "obsictionary-modal-error" });
+    this.errorEl = contentEl.createDiv({ cls: "dictionary-notes-modal-error" });
     this.errorEl.hide();
 
     new Setting(contentEl).addButton((btn) => {

@@ -28,7 +28,7 @@ function readHeaders(table: HTMLTableElement): string[] {
  * attachments keep working.
  */
 function renderCards(table: HTMLTableElement, headers: string[], front: string): HTMLElement {
-  const list = createDiv({ cls: "obsictionary-cards" });
+  const list = createDiv({ cls: "dictionary-notes-cards" });
   const backColumns = headers.filter((h) => h !== front && !isManagedColumn(h));
 
   for (const tr of Array.from(table.querySelectorAll("tbody tr"))) {
@@ -39,18 +39,18 @@ function renderCards(table: HTMLTableElement, headers: string[], front: string):
       if (cell) byName.set(name, cell);
     });
 
-    const card = list.createDiv({ cls: "obsictionary-card" });
+    const card = list.createDiv({ cls: "dictionary-notes-card" });
     const frontCell = byName.get(front);
-    const frontEl = card.createDiv({ cls: "obsictionary-word" });
+    const frontEl = card.createDiv({ cls: "dictionary-notes-word" });
     if (frontCell) moveChildren(frontCell, frontEl);
 
-    const fields = card.createDiv({ cls: "obsictionary-fields" });
+    const fields = card.createDiv({ cls: "dictionary-notes-fields" });
     for (const name of backColumns) {
       const cell = byName.get(name);
       if (!cell || cell.textContent.trim() === "") continue;
-      const field = fields.createDiv({ cls: "obsictionary-field" });
-      field.createSpan({ cls: "obsictionary-field-name", text: name });
-      const valueEl = field.createSpan({ cls: "obsictionary-field-value" });
+      const field = fields.createDiv({ cls: "dictionary-notes-field" });
+      field.createSpan({ cls: "dictionary-notes-field-name", text: name });
+      const valueEl = field.createSpan({ cls: "dictionary-notes-field-value" });
       moveChildren(cell, valueEl);
     }
   }
@@ -79,23 +79,23 @@ export function renderDictionary(
     (t): t is HTMLTableElement => t instanceof HTMLTableElement,
   );
   for (const table of tables) {
-    if (table.dataset["obsictionary"] === "done") continue;
+    if (table.dataset["dictionaryNotes"] === "done") continue;
     const headers = readHeaders(table);
     const front = frontColumnFor(headers);
     if (!isWordsTable(headers, front)) continue;
 
-    const container = createDiv({ cls: "obsictionary-dictionary" });
-    container.dataset["obsictionary"] = "done";
+    const container = createDiv({ cls: "dictionary-notes-dictionary" });
+    container.dataset["dictionaryNotes"] = "done";
 
     if (onReview) {
-      const toolbar = container.createDiv({ cls: "obsictionary-toolbar" });
-      const split = toolbar.createDiv({ cls: "obsictionary-tool-split" });
-      const btn = split.createEl("button", { cls: "obsictionary-review-btn", text: "Review" });
+      const toolbar = container.createDiv({ cls: "dictionary-notes-toolbar" });
+      const split = toolbar.createDiv({ cls: "dictionary-notes-tool-split" });
+      const btn = split.createEl("button", { cls: "dictionary-notes-review-btn", text: "Review" });
       btn.addEventListener("click", () => {
         onReview(ctx.sourcePath, "quick");
       });
       const caret = split.createEl("button", {
-        cls: "obsictionary-tool-caret",
+        cls: "dictionary-notes-tool-caret",
         attr: { "aria-label": "Review options" },
       });
       setIcon(caret, "chevron-down");

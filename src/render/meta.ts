@@ -3,7 +3,7 @@ import { selectProperties } from "../settings";
 import { renderProperties } from "./blocks";
 
 /**
- * Render the dictionary header (an `.obsictionary-meta` block) from a note's
+ * Render the dictionary header (an `.dictionary-notes-meta` block) from a note's
  * frontmatter into `parent`. The allow-list picks which keys to show and in
  * what order (empty = show every property); nothing is created when no
  * property is selected. Hidden keys are dropped here too, because reading mode
@@ -20,6 +20,6 @@ export function renderDictionaryMeta(
   const entries = Object.entries(frontmatter).filter(([key]) => !HIDDEN_PROPERTY_KEYS.has(key));
   const selected = selectProperties(entries, allow);
   if (selected.length === 0) return;
-  const container = parent.createDiv({ cls: "obsictionary-meta" });
+  const container = parent.createDiv({ cls: "dictionary-notes-meta" });
   renderProperties(container, selected, sourcePath);
 }

@@ -1,5 +1,5 @@
 {
-  description = "Obsictionary — Obsidian spaced-repetition dictionary plugin";
+  description = "Dictionary Notes — Obsidian spaced-repetition dictionary plugin";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
@@ -22,7 +22,7 @@
           ];
 
           shellHook = ''
-            echo "Obsictionary dev shell — node $(node --version), npm $(npm --version)"
+            echo "Dictionary Notes dev shell — node $(node --version), npm $(npm --version)"
             echo "  npm ci          install deps"
             echo "  npm run dev     watch build"
             echo "  npm run check   typecheck + lint + test"

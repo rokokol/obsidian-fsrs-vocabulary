@@ -17,15 +17,15 @@ export class ImportWordsModal extends Modal {
     const { contentEl } = this;
     contentEl.createEl("h3", { text: "Import words" });
     contentEl.createEl("p", {
-      cls: "obsictionary-import-hint",
+      cls: "dictionary-notes-import-hint",
       text: `One word per line. Columns: ${this.columns.join(" / ")} — separated by | or ;`,
     });
 
-    const textarea = contentEl.createEl("textarea", { cls: "obsictionary-import-input" });
+    const textarea = contentEl.createEl("textarea", { cls: "dictionary-notes-import-input" });
     textarea.rows = 10;
     textarea.focus();
 
-    const count = contentEl.createDiv({ cls: "obsictionary-import-count" });
+    const count = contentEl.createDiv({ cls: "dictionary-notes-import-count" });
     const parse = (): ImportResult => parseImport(textarea.value, this.columns);
     const updateCount = (): void => {
       const { rows, incomplete } = parse();

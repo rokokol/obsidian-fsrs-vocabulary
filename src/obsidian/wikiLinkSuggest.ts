@@ -54,7 +54,7 @@ export class WikiLinkSuggest extends AbstractInputSuggest<TFile> {
   renderSuggestion(file: TFile, el: HTMLElement): void {
     el.createDiv({ text: file.basename });
     if (file.extension !== "md") {
-      el.createEl("small", { text: file.path, cls: "obsictionary-suggest-path" });
+      el.createEl("small", { text: file.path, cls: "dictionary-notes-suggest-path" });
     }
   }
 

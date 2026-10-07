@@ -39,7 +39,7 @@ export function renderDictionaryTile(
   info: TileInfo,
   options: TileOptions = {},
 ): HTMLElement {
-  const classes = ["obsictionary-tile"];
+  const classes = ["dictionary-notes-tile"];
   if (options.flat === true) classes.push("is-flat");
   if (info.muted) classes.push("is-muted");
   const el = container.createEl("a", { cls: classes.join(" "), href: "#" });
@@ -50,25 +50,25 @@ export function renderDictionaryTile(
     void app.workspace.getLeaf(Keymap.isModEvent(evt)).openFile(info.file);
   });
 
-  if (info.icon) renderIconicIcon(el.createDiv({ cls: "obsictionary-tile-icon" }), info.icon);
+  if (info.icon) renderIconicIcon(el.createDiv({ cls: "dictionary-notes-tile-icon" }), info.icon);
 
-  const body = el.createDiv({ cls: "obsictionary-tile-body" });
-  body.createDiv({ cls: "obsictionary-tile-name", text: info.file.basename });
+  const body = el.createDiv({ cls: "dictionary-notes-tile-body" });
+  body.createDiv({ cls: "dictionary-notes-tile-name", text: info.file.basename });
   const stats = info.stats;
   if (stats || info.muted) {
-    const meta = body.createDiv({ cls: "obsictionary-tile-meta" });
+    const meta = body.createDiv({ cls: "dictionary-notes-tile-meta" });
     // Due first: it is the only number that asks anything of the reader.
     if (stats && stats.due > 0) {
-      meta.createSpan({ cls: "obsictionary-tile-due", text: `${stats.due.toString()} due` });
+      meta.createSpan({ cls: "dictionary-notes-tile-due", text: `${stats.due.toString()} due` });
     }
     if (stats) meta.createSpan({ text: `${stats.total.toString()} words` });
-    if (info.muted) meta.createSpan({ cls: "obsictionary-tile-badge", text: "muted" });
+    if (info.muted) meta.createSpan({ cls: "dictionary-notes-tile-badge", text: "muted" });
   }
 
   const action = options.action;
   if (action) {
     const button = el.createEl("button", {
-      cls: "obsictionary-tile-review",
+      cls: "dictionary-notes-tile-review",
       attr: { "aria-label": action.label },
     });
     setIcon(button, action.icon);
@@ -104,11 +104,11 @@ export function renderDictionaryTiles(
     return found ? { flat, action: found } : { flat };
   };
   if (withIcon.length > 0) {
-    const grid = container.createDiv({ cls: "obsictionary-tiles" });
+    const grid = container.createDiv({ cls: "dictionary-notes-tiles" });
     for (const tile of withIcon) renderDictionaryTile(app, grid, tile, options(tile, false));
   }
   if (withoutIcon.length > 0) {
-    const list = container.createDiv({ cls: "obsictionary-tile-list" });
+    const list = container.createDiv({ cls: "dictionary-notes-tile-list" });
     for (const tile of withoutIcon) renderDictionaryTile(app, list, tile, options(tile, true));
   }
 }

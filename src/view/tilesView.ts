@@ -1,11 +1,11 @@
 import { ItemView, type TAbstractFile, type WorkspaceLeaf } from "obsidian";
-import type ObsictionaryPlugin from "../main";
+import type DictionaryNotesPlugin from "../main";
 import { addIconicReloadAction } from "../obsidian/iconic";
 import { renderDictionaryTiles, type TileInfo } from "../render/dictionaryTile";
 import { quickReview } from "../ui/prompts";
 import { collectRows, NO_DICTIONARIES, REDRAW_DELAY } from "./dictionaryList";
 
-export const TILES_VIEW_TYPE = "obsictionary-tiles";
+export const TILES_VIEW_TYPE = "dictionary-notes-tiles";
 
 /**
  * Dictionaries only, as tiles.
@@ -17,7 +17,7 @@ export const TILES_VIEW_TYPE = "obsictionary-tiles";
  * degrades to a plain list rather than a grid of identical blank squares.
  */
 export class DictionaryTilesView extends ItemView {
-  private readonly plugin: ObsictionaryPlugin;
+  private readonly plugin: DictionaryNotesPlugin;
   private redrawTimer: number | null = null;
   /** Bumped per render; an older pass checks it before touching the DOM again. */
   private generation = 0;
@@ -26,7 +26,7 @@ export class DictionaryTilesView extends ItemView {
   /** The "Reload icons" button, hidden while the integration is off. */
   private reloadAction: HTMLElement | null = null;
 
-  constructor(leaf: WorkspaceLeaf, plugin: ObsictionaryPlugin) {
+  constructor(leaf: WorkspaceLeaf, plugin: DictionaryNotesPlugin) {
     super(leaf);
     this.plugin = plugin;
     this.navigation = true;
@@ -98,12 +98,12 @@ export class DictionaryTilesView extends ItemView {
 
     const root = this.contentEl;
     root.empty();
-    root.addClass("obsictionary-tiles-view");
+    root.addClass("dictionary-notes-tiles-view");
 
     const files = this.plugin.cache.files();
     if (files.length === 0) {
       this.shown.clear();
-      root.createDiv({ cls: "obsictionary-view-empty", text: NO_DICTIONARIES });
+      root.createDiv({ cls: "dictionary-notes-view-empty", text: NO_DICTIONARIES });
       return;
     }
 

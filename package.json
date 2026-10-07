@@ -1,5 +1,5 @@
 {
-  "name": "obsidian-obsictionary",
+  "name": "obsidian-dictionary-notes",
   "version": "0.2.1",
   "description": "Turn Obsidian notes into spaced-repetition dictionaries: styled dictionary view, per-word FSRS review, stats, presets and attachments.",
   "type": "module",

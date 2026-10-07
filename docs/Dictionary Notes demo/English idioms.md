@@ -1,5 +1,5 @@
 ---
-obsictionary:
+dictionary-notes:
   presets:
     - name: From the translation
       front:
@@ -14,7 +14,7 @@ obsictionary:
         - translation
         - example
 level: B2
-source: "[[Obsictionary demo]]"
+source: "[[Dictionary Notes demo]]"
 ---
 > [!info]+ Theory
 > Everything above `## Words` is yours: callouts, images, formulas — all rendered

@@ -2,13 +2,7 @@ import { Notice, normalizePath, type App, type TFile, type TFolder } from "obsid
 import { contentColumns, DUE_COLUMN, eolOf, SRS_COLUMN } from "../model/dictionary";
 import { CONFIG_KEY } from "../model/dictionaryConfig";
 import { serializeTable, type MarkdownTable } from "../model/table";
-import {
-  addDictionaryProperty,
-  needsDictionaryMigration,
-  readDictionary,
-  updateWordsTable,
-  type DictionaryDoc,
-} from "../obsidian/dictionaryFile";
+import { readDictionary, updateWordsTable, type DictionaryDoc } from "../obsidian/dictionaryFile";
 
 /**
  * Content columns to prompt for when adding words to `doc`: the existing table's
@@ -80,7 +74,7 @@ function availablePath(app: App, folder: string, base: string): string {
 }
 
 /**
- * Create a new, generic dictionary note — nothing in it but the `obsictionary`
+ * Create a new, generic dictionary note — nothing in it but the `dictionary-notes`
  * property that makes it one — with the given content columns, and return it.
  * Without a `parent` the note lands wherever Obsidian puts new notes.
  */
@@ -109,35 +103,4 @@ export async function createDictionaryNote(
   const file = await app.vault.create(path, content);
   new Notice(`Created ${file.basename}`);
   return file;
-}
-
-/** Notes still marked the old way: tagged `#obsictionary`, no property. */
-export function taggedWithoutProperty(app: App): TFile[] {
-  return app.vault.getMarkdownFiles().filter((file) => needsDictionaryMigration(app, file));
-}
-
-/** Outcome of a migration pass — reported as-is, successes and failures alike. */
-export interface MigrationResult {
-  converted: number;
-  failed: string[];
-}
-
-/**
- * Give every note left over from the tag-based rule its `obsictionary` property.
- *
- * One unwritable note does not stop the pass: aborting halfway would leave the
- * vault half-converted with no way to tell how far it got, and the notes that did
- * work are the ones the user most wants back.
- */
-export async function migrateTaggedDictionaries(app: App): Promise<MigrationResult> {
-  const result: MigrationResult = { converted: 0, failed: [] };
-  for (const file of taggedWithoutProperty(app)) {
-    try {
-      await addDictionaryProperty(app, file);
-      result.converted += 1;
-    } catch {
-      result.failed.push(file.basename);
-    }
-  }
-  return result;
 }

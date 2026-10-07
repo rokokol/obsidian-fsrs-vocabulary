@@ -1,6 +1,6 @@
 {
-  "id": "obsictionary",
-  "name": "Obsictionary",
+  "id": "dictionary-notes",
+  "name": "Dictionary Notes",
   "version": "0.2.1",
   "minAppVersion": "1.5.0",
   "description": "Turn notes into spaced-repetition dictionaries: styled dictionary view, per-word FSRS review, stats, presets and audio/image attachments.",

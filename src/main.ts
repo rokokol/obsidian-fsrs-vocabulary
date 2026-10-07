@@ -11,12 +11,7 @@ import {
   WorkspaceLeaf,
 } from "obsidian";
 import { State } from "ts-fsrs";
-import {
-  createDictionaryNote,
-  migrateTaggedDictionaries,
-  taggedWithoutProperty,
-  type MigrationResult,
-} from "./commands/dictionaryCommands";
+import { createDictionaryNote } from "./commands/dictionaryCommands";
 import { rescheduleAll } from "./commands/reschedule";
 import { tableCards } from "./model/cards";
 import { countedDictionaries, type DictionaryConfig } from "./model/dictionaryConfig";
@@ -35,7 +30,7 @@ import { renderDictionary, type ReviewMode } from "./render/dictionaryView";
 import { renderStats, type StatActions } from "./render/statsView";
 import { DueTracker } from "./review/dueTracker";
 import { quickOptions, type ReviewSlice } from "./review/options";
-import { DEFAULT_SETTINGS, migrateSettings, type ObsictionarySettings } from "./settings";
+import { DEFAULT_SETTINGS, migrateSettings, type DictionaryNotesSettings } from "./settings";
 import { ConfirmModal } from "./ui/confirmModal";
 import {
   promptAddWord,
@@ -45,7 +40,7 @@ import {
   reviewSlice,
   type ReviewPrefs,
 } from "./ui/prompts";
-import { ObsictionarySettingTab } from "./ui/settingsTab";
+import { DictionaryNotesSettingTab } from "./ui/settingsTab";
 import { errorMessage, plural } from "./util";
 import { DASHBOARD_VIEW_TYPE, DashboardView } from "./view/dashboardView";
 import { DICTIONARY_VIEW_TYPE, DictionaryEditorView } from "./view/dictionaryEditorView";
@@ -56,14 +51,14 @@ function dictionaries(count: number): string {
   return `${count.toString()} ${count === 1 ? "dictionary" : "dictionaries"}`;
 }
 
-/** What an `obsictionary-stats` block resolved to: dictionaries, and scopes that found none. */
+/** What an `dictionary-notes-stats` block resolved to: dictionaries, and scopes that found none. */
 interface StatsBlockFiles {
   files: TFile[];
   missing: string[];
 }
 
-export default class ObsictionaryPlugin extends Plugin {
-  override settings: ObsictionarySettings = DEFAULT_SETTINGS;
+export default class DictionaryNotesPlugin extends Plugin {
+  override settings: DictionaryNotesSettings = DEFAULT_SETTINGS;
   readonly cache = new DictionaryCache(this.app);
   /** Paths the user explicitly asked to keep open as markdown (skip auto-swap). */
   private readonly forceMarkdown = new Set<string>();
@@ -94,12 +89,12 @@ export default class ObsictionaryPlugin extends Plugin {
    * dictionaries means nothing, and after it, it means the vault has none.
    */
   private settled = false;
-  /** How to redraw each `obsictionary-stats` block and dictionary embed on screen. */
+  /** How to redraw each `dictionary-notes-stats` block and dictionary embed on screen. */
   private readonly statsBlocks = new Set<() => void>();
 
   override async onload(): Promise<void> {
     await this.loadSettings();
-    this.addSettingTab(new ObsictionarySettingTab(this.app, this));
+    this.addSettingTab(new DictionaryNotesSettingTab(this.app, this));
 
     this.registerView(DICTIONARY_VIEW_TYPE, (leaf) => new DictionaryEditorView(leaf, this));
     this.registerView(DASHBOARD_VIEW_TYPE, (leaf) => new DashboardView(leaf, this));
@@ -130,11 +125,10 @@ export default class ObsictionaryPlugin extends Plugin {
       this.updateChrome();
       this.startupReminderPending = this.settings.remindersEnabled && this.settings.remindOnStartup;
       this.applyTracking();
-      this.offerMigration();
     });
     // `onLayoutReady` says the panes are up, not that the notes have been read:
     // on a cold start Obsidian indexes frontmatter after it draws the workspace,
-    // so detection there sees no `obsictionary` property anywhere and the index
+    // so detection there sees no `dictionary-notes` property anywhere and the index
     // comes back empty — the dashboard says there are no dictionaries and a
     // restored dictionary tab stays plain markdown until the user reopens it.
     // `resolved` is the cache announcing it has read everything, so index again,
@@ -158,7 +152,7 @@ export default class ObsictionaryPlugin extends Plugin {
       }),
     );
 
-    this.addRibbonIcon("layout-dashboard", "Obsictionary dashboard", () => {
+    this.addRibbonIcon("layout-dashboard", "Dictionary Notes dashboard", () => {
       void this.openDashboard();
     });
 
@@ -168,7 +162,7 @@ export default class ObsictionaryPlugin extends Plugin {
       if (file && leaf && isDictionaryFile(this.app, file)) {
         void this.openAsDictionary(file, leaf);
       } else {
-        new Notice("Active note is not an Obsictionary dictionary.");
+        new Notice("Active note is not a Dictionary Notes dictionary.");
       }
     });
 
@@ -183,7 +177,7 @@ export default class ObsictionaryPlugin extends Plugin {
       );
     });
 
-    this.registerMarkdownCodeBlockProcessor("obsictionary-stats", (source, el, ctx) => {
+    this.registerMarkdownCodeBlockProcessor("dictionary-notes-stats", (source, el, ctx) => {
       this.liveStats(ctx, el, () => this.statsFiles(source, ctx.sourcePath));
     });
 
@@ -219,14 +213,6 @@ export default class ObsictionaryPlugin extends Plugin {
       name: "New dictionary note",
       callback: () => {
         void this.createDictionary();
-      },
-    });
-
-    this.addCommand({
-      id: "migrate-tagged-dictionaries",
-      name: "Convert tagged notes into dictionaries",
-      callback: () => {
-        void this.migrateTagged();
       },
     });
 
@@ -383,61 +369,6 @@ export default class ObsictionaryPlugin extends Plugin {
     else this.dueTracker.forget(file.path);
   }
 
-  /**
-   * Dictionaries used to be marked with the `#obsictionary` tag. Detection moved
-   * to the property, so a vault written under the old rule would come up empty —
-   * say so, with the command that fixes it, rather than silently losing every
-   * dictionary the user has.
-   *
-   * Offered once per vault. Plenty of notes carry the tag on purpose without
-   * wanting to be dictionaries (a note *about* the plugin, for one), and a notice
-   * on every launch that the user cannot answer is nagging. The command stays.
-   */
-  private offerMigration(): void {
-    if (this.settings.migrationOffered) return;
-    const stale = taggedWithoutProperty(this.app).length;
-    if (stale === 0) return;
-    this.settings.migrationOffered = true;
-    void this.saveSettings();
-    const notice = new Notice("", 15000);
-    notice.messageEl.setText(
-      `${stale.toString()} tagged ${stale === 1 ? "note is" : "notes are"} missing the ` +
-        "obsictionary property and no longer count as dictionaries. ",
-    );
-    const link = notice.messageEl.createEl("a", { text: "Convert them", href: "#" });
-    link.addEventListener("click", (evt) => {
-      evt.preventDefault();
-      notice.hide();
-      void this.migrateTagged();
-    });
-  }
-
-  private async migrateTagged(): Promise<void> {
-    let result: MigrationResult;
-    try {
-      result = await migrateTaggedDictionaries(this.app);
-    } catch (err) {
-      new Notice(`Could not convert the tagged notes: ${errorMessage(err)}`);
-      return;
-    }
-    // Rebuilt whatever happened: the notes that did convert are dictionaries now,
-    // and leaving them out of the cache would hide them until the next restart.
-    this.cache.rebuild();
-    this.refreshRendered();
-    const parts: string[] = [];
-    if (result.converted > 0) {
-      parts.push(`Converted ${result.converted.toString()} note${plural(result.converted)}.`);
-    }
-    if (result.failed.length > 0) {
-      // Named rather than counted, because knowing *which* note to look at is the
-      // whole value — but a notice is not a place for forty of them.
-      const shown = result.failed.slice(0, 3).join(", ");
-      const rest = result.failed.length - 3;
-      parts.push(`Could not write ${shown}${rest > 0 ? ` and ${rest.toString()} more` : ""}.`);
-    }
-    new Notice(parts.length > 0 ? parts.join(" ") : "No tagged notes left to convert.");
-  }
-
   private async promptAddWord(file: TFile): Promise<void> {
     const doc = await readDictionary(this.app, file);
     if (doc) promptAddWord(this.app, file, doc, this.settings.newDictionaryColumns);
@@ -531,8 +462,8 @@ export default class ObsictionaryPlugin extends Plugin {
       });
       this.statusBarObserver = observer;
     }
-    const empty = bar !== null && ObsictionaryPlugin.isStatusBarEmpty(bar);
-    document.body.toggleClass("obsictionary-hide-status", active && empty);
+    const empty = bar !== null && DictionaryNotesPlugin.isStatusBarEmpty(bar);
+    document.body.toggleClass("dictionary-notes-hide-status", active && empty);
   }
 
   /** True when every status-bar item is hidden (computed display none). */
@@ -583,7 +514,7 @@ export default class ObsictionaryPlugin extends Plugin {
   private applyStatusBar(): void {
     if (this.statusBarEl || !this.statusBarWanted()) return;
     const el = this.addStatusBarItem();
-    el.addClass("obsictionary-status", "mod-clickable");
+    el.addClass("dictionary-notes-status", "mod-clickable");
     el.hide();
     el.addEventListener("click", () => {
       void this.reviewDue();
@@ -647,9 +578,9 @@ export default class ObsictionaryPlugin extends Plugin {
     if (count === 0) {
       el.hide();
     } else {
-      setIcon(el.createSpan({ cls: "obsictionary-status-icon" }), "book-a");
+      setIcon(el.createSpan({ cls: "dictionary-notes-status-icon" }), "book-a");
       el.createSpan({ text: count.toString() });
-      el.setAttribute("aria-label", `Review ${ObsictionaryPlugin.cards(count)} due`);
+      el.setAttribute("aria-label", `Review ${DictionaryNotesPlugin.cards(count)} due`);
       el.show();
     }
     this.updateChrome();
@@ -665,7 +596,7 @@ export default class ObsictionaryPlugin extends Plugin {
     const count = this.dueTracker.count();
     if (count === 0) return;
     const notice = new Notice("", 10000);
-    notice.messageEl.setText(`${ObsictionaryPlugin.cards(count)} due for review. `);
+    notice.messageEl.setText(`${DictionaryNotesPlugin.cards(count)} due for review. `);
     const link = notice.messageEl.createEl("a", { text: "Review now", href: "#" });
     link.addEventListener("click", (evt) => {
       evt.preventDefault();
@@ -709,7 +640,7 @@ export default class ObsictionaryPlugin extends Plugin {
       return;
     }
     if (!written) {
-      new Notice("Could not update this note: its obsictionary property is not a mapping.");
+      new Notice("Could not update this note: its dictionary-notes property is not a mapping.");
       return;
     }
     new Notice(written.mute ? `Muted ${file.basename}.` : `Unmuted ${file.basename}.`);
@@ -799,7 +730,7 @@ export default class ObsictionaryPlugin extends Plugin {
    * passes land within seconds of a normal start; after a mid-session enable the
    * `resolved` one waits for whatever the user edits next, since the cache resolved
    * long before this instance existed. That same coupling to `changed` is what
-   * makes this safe: when the user types the `obsictionary` property by hand,
+   * makes this safe: when the user types the `dictionary-notes` property by hand,
    * `changed` folds it in first, so the rescan reports nothing and this returns
    * before the sweep — which is what keeps the swap off a cursor still sitting in
    * the frontmatter block.
@@ -826,7 +757,7 @@ export default class ObsictionaryPlugin extends Plugin {
 
   /**
    * Swap a leaf that is *already* showing a dictionary as markdown — a restored
-   * workspace at load, or a note the user has just given the `obsictionary`
+   * workspace at load, or a note the user has just given the `dictionary-notes`
    * property to. Ordinary opens never reach this: `interceptOpens` catches them
    * before a markdown view is ever built.
    *
@@ -887,7 +818,7 @@ export default class ObsictionaryPlugin extends Plugin {
   }
 
   /**
-   * Files for an `obsictionary-stats` block: an empty body means the current note,
+   * Files for an `dictionary-notes-stats` block: an empty body means the current note,
    * and otherwise every line is a scope, in the order they were written.
    *
    * Deduplicated by path, since a block may name a dictionary that `vault` already
@@ -1025,7 +956,7 @@ export default class ObsictionaryPlugin extends Plugin {
         // and one unreadable dictionary should not raise a row of popups.
         el.empty();
         el.createDiv({
-          cls: "obsictionary-stats-empty is-error",
+          cls: "dictionary-notes-stats-empty is-error",
           text: `Could not read the dictionaries for this block: ${errorMessage(err)}`,
         });
       });
@@ -1108,7 +1039,7 @@ export default class ObsictionaryPlugin extends Plugin {
   /**
    * Repaint everything that renders dictionary content. Some settings — which
    * properties to show, whether muted dictionaries count — change what the
-   * dashboard totals and every `obsictionary-stats` block mean, and neither
+   * dashboard totals and every `dictionary-notes-stats` block mean, and neither
    * redraws on its own: the dashboard waits for a dictionary edit, and a block's
    * processor only runs again on a re-render.
    *
@@ -1174,11 +1105,11 @@ export default class ObsictionaryPlugin extends Plugin {
     // Obsidian removes the item itself; dropping the handle keeps a late
     // callback from painting into a detached element.
     this.statusBarEl = null;
-    document.body.removeClass("obsictionary-hide-status");
+    document.body.removeClass("dictionary-notes-hide-status");
   }
 
   async loadSettings(): Promise<void> {
-    const stored = (await this.loadData()) as Partial<ObsictionarySettings> | null;
+    const stored = (await this.loadData()) as Partial<DictionaryNotesSettings> | null;
     this.settings = { ...DEFAULT_SETTINGS, ...migrateSettings(stored ?? {}) };
   }
 

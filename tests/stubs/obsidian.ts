@@ -37,6 +37,5 @@ function unimplemented(name: string): () => never {
   };
 }
 
-export const getAllTags = unimplemented("getAllTags");
 export const getFrontMatterInfo = unimplemented("getFrontMatterInfo");
 export const setIcon = unimplemented("setIcon");

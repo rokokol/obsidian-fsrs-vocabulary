@@ -4,7 +4,7 @@
  * note's real properties stay uncluttered:
  *
  * ```yaml
- * obsictionary:
+ * dictionary-notes:
  *   mute: true
  *   presets:
  *     - name: Reverse
@@ -26,7 +26,7 @@ import { isManagedColumn } from "./dictionary";
  * presence, the thing that makes a note a dictionary. One marker doing both jobs:
  * two of them (this key and a tag) could disagree, and did.
  */
-export const CONFIG_KEY = "obsictionary";
+export const CONFIG_KEY = "dictionary-notes";
 
 /**
  * Frontmatter keys never shown as note properties: the plugin's own config block,
@@ -304,7 +304,7 @@ function presetToValue(preset: ReviewPreset): Record<string, unknown> {
 }
 
 /**
- * The value to store under `obsictionary`, or null when the config has nothing
+ * The value to store under `dictionary-notes`, or null when the config has nothing
  * worth storing. Null is not "drop the key" — the key is what makes the note a
  * dictionary; `storedConfigValue` decides what an empty config becomes.
  * Unmodeled keys and unreadable preset entries are written back untouched.

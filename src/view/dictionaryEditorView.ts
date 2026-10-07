@@ -10,7 +10,7 @@ import {
   type ViewStateResult,
   type WorkspaceLeaf,
 } from "obsidian";
-import type ObsictionaryPlugin from "../main";
+import type DictionaryNotesPlugin from "../main";
 import {
   contentColumns,
   DUE_COLUMN,
@@ -48,7 +48,7 @@ import {
 } from "./renderPlan";
 import { sortRows, type RowEntry } from "./sortRows";
 
-export const DICTIONARY_VIEW_TYPE = "obsictionary-view";
+export const DICTIONARY_VIEW_TYPE = "dictionary-notes-view";
 
 /**
  * How long to wait before repainting after a vault event. One edit produces two
@@ -122,7 +122,7 @@ function bindCommitHandlers(el: HTMLElement, onFinish: (save: boolean) => void):
 
 /** Interactive, Excalidraw-style dictionary editor bound to a markdown file. */
 export class DictionaryEditorView extends ItemView {
-  private readonly plugin: ObsictionaryPlugin;
+  private readonly plugin: DictionaryNotesPlugin;
   private file: TFile | null = null;
   private dragIndex: number | null = null;
   private sortMode: SortMode;
@@ -153,7 +153,7 @@ export class DictionaryEditorView extends ItemView {
    */
   private warnedUnreadable = false;
 
-  constructor(leaf: WorkspaceLeaf, plugin: ObsictionaryPlugin) {
+  constructor(leaf: WorkspaceLeaf, plugin: DictionaryNotesPlugin) {
     super(leaf);
     this.plugin = plugin;
     this.sortMode = plugin.settings.defaultSort;
@@ -284,14 +284,14 @@ export class DictionaryEditorView extends ItemView {
     this.shell = null;
     this.snapshot = null;
     this.contentEl.empty();
-    this.contentEl.createDiv({ cls: "obsictionary-view-empty", text });
+    this.contentEl.createDiv({ cls: "dictionary-notes-view-empty", text });
   }
 
   private async renderView(): Promise<void> {
     this.generation += 1;
     const generation = this.generation;
     const root = this.contentEl;
-    root.addClass("obsictionary-view");
+    root.addClass("dictionary-notes-view");
 
     const file = this.file;
     if (!file) {
@@ -321,7 +321,7 @@ export class DictionaryEditorView extends ItemView {
     // file. Neither the file nor the generation is allowed to have moved.
     if (this.generation !== generation || this.file?.path !== file.path) return;
     if (!doc) {
-      this.showMessage("This note is not an Obsictionary dictionary.");
+      this.showMessage("This note is not a Dictionary Notes dictionary.");
       return;
     }
 
@@ -410,7 +410,7 @@ export class DictionaryEditorView extends ItemView {
       this.snapshot = null;
       // Most callers fire this render without awaiting it, so the rethrow becomes
       // an unhandled rejection with nothing naming the view it came from.
-      console.error("Obsictionary: failed to render dictionary", file.path, err);
+      console.error("Dictionary Notes: failed to render dictionary", file.path, err);
       throw err;
     }
     this.snapshot = next;
@@ -422,11 +422,11 @@ export class DictionaryEditorView extends ItemView {
     this.releaseTheory();
     root.empty();
     const shell: Shell = {
-      toolbar: root.createDiv({ cls: "obsictionary-view-toolbar" }),
+      toolbar: root.createDiv({ cls: "dictionary-notes-view-toolbar" }),
       stats: root.createDiv(),
       theory: root.createDiv(),
       meta: root.createDiv(),
-      cards: root.createDiv({ cls: "obsictionary-cards" }),
+      cards: root.createDiv({ cls: "dictionary-notes-cards" }),
     };
     this.shell = shell;
     return shell;
@@ -470,8 +470,8 @@ export class DictionaryEditorView extends ItemView {
   private syncHeaderTitle(file: TFile): void {
     const titleEl = this.containerEl.querySelector<HTMLElement>(".view-header-title");
     if (!titleEl) return;
-    if (!titleEl.hasClass("obsictionary-header-title")) {
-      titleEl.addClass("obsictionary-header-title");
+    if (!titleEl.hasClass("dictionary-notes-header-title")) {
+      titleEl.addClass("dictionary-notes-header-title");
       titleEl.addEventListener("click", () => {
         this.beginHeaderRename(titleEl);
       });
@@ -530,7 +530,7 @@ export class DictionaryEditorView extends ItemView {
         void this.reviewWithOptions(file);
       },
     );
-    bar.createDiv({ cls: "obsictionary-view-toolbar-spacer" });
+    bar.createDiv({ cls: "dictionary-notes-view-toolbar-spacer" });
     this.renderMuteControl(bar, file, doc);
     this.renderSortControl(bar);
   }
@@ -572,8 +572,8 @@ export class DictionaryEditorView extends ItemView {
     label: string,
     onClick: (evt: MouseEvent) => void,
   ): HTMLButtonElement {
-    const btn = bar.createEl("button", { cls: "obsictionary-tool" });
-    const iconEl = btn.createSpan({ cls: "obsictionary-tool-icon" });
+    const btn = bar.createEl("button", { cls: "dictionary-notes-tool" });
+    const iconEl = btn.createSpan({ cls: "dictionary-notes-tool-icon" });
     setIcon(iconEl, icon);
     btn.createSpan({ text: label });
     btn.addEventListener("click", onClick);
@@ -592,10 +592,10 @@ export class DictionaryEditorView extends ItemView {
     onClick: () => void,
     onCaret: (evt: MouseEvent) => void,
   ): void {
-    const wrap = bar.createDiv({ cls: "obsictionary-tool-split" });
+    const wrap = bar.createDiv({ cls: "dictionary-notes-tool-split" });
     this.toolButton(wrap, icon, label, onClick);
     const caret = wrap.createEl("button", {
-      cls: "obsictionary-tool-caret",
+      cls: "dictionary-notes-tool-caret",
       attr: { "aria-label": `${label} options` },
     });
     setIcon(caret, "chevron-down");
@@ -611,7 +611,7 @@ export class DictionaryEditorView extends ItemView {
     if (!doc.table) return;
     const front = quickOptions(doc.frontmatter.config, headers).frontColumns;
     const stats = statsForRows(doc.table.rows, front, new Date());
-    const panel = section.createDiv({ cls: "obsictionary-view-stats" });
+    const panel = section.createDiv({ cls: "dictionary-notes-view-stats" });
     renderStatsGrid(panel, stats, this.plugin.statActions([doc.file]));
   }
 
@@ -633,20 +633,20 @@ export class DictionaryEditorView extends ItemView {
     this.theoryComponent = component;
 
     const hasTheory = doc.theory.trim() !== "";
-    const section = root.createDiv({ cls: "obsictionary-view-theory" });
+    const section = root.createDiv({ cls: "dictionary-notes-view-theory" });
 
-    const bar = section.createDiv({ cls: "obsictionary-theory-bar" });
+    const bar = section.createDiv({ cls: "dictionary-notes-theory-bar" });
     const editBtn = bar.createEl("button", {
-      cls: "obsictionary-theory-edit",
+      cls: "dictionary-notes-theory-edit",
       attr: { "aria-label": "Edit theory" },
     });
     setIcon(editBtn, "pencil");
 
-    const bodyEl = section.createDiv({ cls: "obsictionary-theory-body" });
+    const bodyEl = section.createDiv({ cls: "dictionary-notes-theory-body" });
     if (hasTheory) {
       void MarkdownRenderer.render(this.app, doc.theory, bodyEl, file.path, component);
     } else {
-      bodyEl.createDiv({ cls: "obsictionary-view-empty is-inline", text: "Add theory…" });
+      bodyEl.createDiv({ cls: "dictionary-notes-view-empty is-inline", text: "Add theory…" });
     }
 
     const startEdit = (): void => {
@@ -658,13 +658,13 @@ export class DictionaryEditorView extends ItemView {
 
   private beginTheoryEdit(bodyEl: HTMLElement, file: TFile, theory: string): void {
     bodyEl.empty();
-    const textarea = bodyEl.createEl("textarea", { cls: "obsictionary-theory-input" });
+    const textarea = bodyEl.createEl("textarea", { cls: "dictionary-notes-theory-input" });
     textarea.value = theory;
     textarea.rows = Math.max(3, theory.split("\n").length + 1);
     textarea.focus();
     enhanceFieldInput(this.app, textarea, file.path);
 
-    const controls = bodyEl.createDiv({ cls: "obsictionary-theory-controls" });
+    const controls = bodyEl.createDiv({ cls: "dictionary-notes-theory-controls" });
     const save = controls.createEl("button", { cls: "mod-cta", text: "Save" });
     const cancel = controls.createEl("button", { text: "Cancel" });
     save.addEventListener("click", () => {
@@ -696,7 +696,7 @@ export class DictionaryEditorView extends ItemView {
     list.empty();
     if (entries.length === 0) {
       list.createDiv({
-        cls: "obsictionary-view-empty",
+        cls: "dictionary-notes-view-empty",
         text: 'No words yet — use "Add word".',
       });
       return;
@@ -748,11 +748,11 @@ export class DictionaryEditorView extends ItemView {
     backCols: string[],
   ): CardEntry {
     const component = this.addChild(new Component());
-    const card = createDiv({ cls: "obsictionary-card obsictionary-card-editable" });
+    const card = createDiv({ cls: "dictionary-notes-card dictionary-notes-card-editable" });
     if (this.sortMode === "manual") {
       this.attachDragTarget(card, file, rowIndex);
       const handle = card.createDiv({
-        cls: "obsictionary-card-handle",
+        cls: "dictionary-notes-card-handle",
         attr: { "aria-label": "Drag to reorder", draggable: "true" },
       });
       setIcon(handle, "grip-vertical");
@@ -770,7 +770,7 @@ export class DictionaryEditorView extends ItemView {
     }
 
     const del = card.createEl("button", {
-      cls: "obsictionary-card-delete",
+      cls: "dictionary-notes-card-delete",
       attr: { "aria-label": "Delete word" },
     });
     setIcon(del, "trash-2");
@@ -781,14 +781,14 @@ export class DictionaryEditorView extends ItemView {
       }).open();
     });
 
-    const frontEl = card.createDiv({ cls: "obsictionary-word" });
+    const frontEl = card.createDiv({ cls: "dictionary-notes-word" });
     this.renderEditable(frontEl, component, file, rowIndex, front, row[front] ?? "");
 
-    const fields = card.createDiv({ cls: "obsictionary-fields" });
+    const fields = card.createDiv({ cls: "dictionary-notes-fields" });
     for (const col of backCols) {
-      const field = fields.createDiv({ cls: "obsictionary-field" });
-      field.createSpan({ cls: "obsictionary-field-name", text: col });
-      const valueEl = field.createSpan({ cls: "obsictionary-field-value" });
+      const field = fields.createDiv({ cls: "dictionary-notes-field" });
+      field.createSpan({ cls: "dictionary-notes-field-name", text: col });
+      const valueEl = field.createSpan({ cls: "dictionary-notes-field-value" });
       this.renderEditable(valueEl, component, file, rowIndex, col, row[col] ?? "");
     }
     return { el: card, component };
@@ -803,7 +803,7 @@ export class DictionaryEditorView extends ItemView {
     value: string,
   ): void {
     el.empty();
-    el.addClass("obsictionary-editable");
+    el.addClass("dictionary-notes-editable");
     if (value.trim() === "") {
       el.addClass("is-empty");
       el.setText("…");
@@ -828,7 +828,7 @@ export class DictionaryEditorView extends ItemView {
   ): void {
     el.empty();
     el.removeClass("is-empty");
-    const input = el.createEl("input", { cls: "obsictionary-edit-input", type: "text" });
+    const input = el.createEl("input", { cls: "dictionary-notes-edit-input", type: "text" });
     input.value = value;
     input.focus();
     input.select();

@@ -1,5 +1,5 @@
 ---
-obsictionary: {}
+dictionary-notes: {}
 ---
 > [!info]+ A muted dictionary
 > This one is muted, so its due cards stay out of the status-bar counter and the

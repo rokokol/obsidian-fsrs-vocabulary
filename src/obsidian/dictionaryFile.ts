@@ -1,9 +1,8 @@
-import { getAllTags, getFrontMatterInfo, type App, type TFile } from "obsidian";
+import { getFrontMatterInfo, type App, type TFile } from "obsidian";
 import { locateWords, replaceTheory, replaceWordsTable } from "../model/dictionary";
 import {
   CONFIG_KEY,
   emptyConfig,
-  emptyConfigValue,
   HIDDEN_PROPERTY_KEYS,
   isPlainObject,
   marksDictionary,
@@ -12,14 +11,6 @@ import {
   type DictionaryConfig,
 } from "../model/dictionaryConfig";
 import type { MarkdownTable } from "../model/table";
-
-/**
- * Tag that used to mark a note as a dictionary. Detection now goes by the
- * `obsictionary` property alone — one marker instead of two that could disagree,
- * and the property is the thing the plugin actually reads. The tag survives only
- * so the migration command can find notes written under the old rule.
- */
-const LEGACY_DICTIONARY_TAG = "obsictionary";
 
 export interface DictionaryFrontmatter {
   /** Non-plugin keys shown in the properties mini-table (incl. related, nav). */
@@ -63,29 +54,9 @@ function frontmatterOf(app: App, file: TFile): Record<string, unknown> | null {
   return fm as Record<string, unknown>;
 }
 
-/** Whether a note is a dictionary — it carries the `obsictionary` property. */
+/** Whether a note is a dictionary — it carries the `dictionary-notes` property. */
 export function isDictionaryFile(app: App, file: TFile): boolean {
   return marksDictionary(frontmatterOf(app, file));
-}
-
-/** A note written under the old rule: tagged, but without the property. */
-export function needsDictionaryMigration(app: App, file: TFile): boolean {
-  if (isDictionaryFile(app, file)) return false;
-  const cache = app.metadataCache.getFileCache(file);
-  if (!cache) return false;
-  return (getAllTags(cache) ?? []).includes(`#${LEGACY_DICTIONARY_TAG}`);
-}
-
-/**
- * Give a tagged note the `obsictionary` property, making it a dictionary under
- * the current rule. The tag is left alone: it is the user's, and plenty of vaults
- * use it for their own queries.
- */
-export async function addDictionaryProperty(app: App, file: TFile): Promise<void> {
-  await app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
-    if (marksDictionary(frontmatter)) return;
-    frontmatter[CONFIG_KEY] = emptyConfigValue();
-  });
 }
 
 /** Read and parse a dictionary note. Returns null if it is not a dictionary. */
@@ -148,7 +119,7 @@ export async function updateWordsTable(
  * Returns the config as written, so a caller that flips a flag can report what
  * the flag became instead of guessing from a possibly stale metadata cache.
  *
- * Returns null without writing when the note already has an `obsictionary` key
+ * Returns null without writing when the note already has an `dictionary-notes` key
  * holding something other than a mapping (a stray string, say): there is nowhere
  * to merge into, and overwriting it would destroy whatever the user put there.
  * Callers should tell the user rather than fail silently. An empty value is not

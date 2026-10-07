@@ -412,22 +412,22 @@ describe("shadowed preset twins", () => {
 
 describe("marksDictionary", () => {
   it("accepts frontmatter carrying the key, whatever it holds", () => {
-    expect(marksDictionary({ obsictionary: null })).toBe(true);
-    expect(marksDictionary({ obsictionary: {} })).toBe(true);
-    expect(marksDictionary({ obsictionary: { mute: true } })).toBe(true);
+    expect(marksDictionary({ "dictionary-notes": null })).toBe(true);
+    expect(marksDictionary({ "dictionary-notes": {} })).toBe(true);
+    expect(marksDictionary({ "dictionary-notes": { mute: true } })).toBe(true);
     // Unreadable config, but still a dictionary — the note says so.
-    expect(marksDictionary({ obsictionary: "nonsense" })).toBe(true);
+    expect(marksDictionary({ "dictionary-notes": "nonsense" })).toBe(true);
   });
 
   it("rejects frontmatter without the key", () => {
-    expect(marksDictionary({ tags: ["obsictionary"] })).toBe(false);
+    expect(marksDictionary({ tags: ["dictionary-notes"] })).toBe(false);
     expect(marksDictionary({})).toBe(false);
   });
 
   it("rejects a missing or non-mapping frontmatter", () => {
     expect(marksDictionary(null)).toBe(false);
     expect(marksDictionary(undefined)).toBe(false);
-    expect(marksDictionary("obsictionary")).toBe(false);
+    expect(marksDictionary("dictionary-notes")).toBe(false);
     expect(marksDictionary([])).toBe(false);
   });
 
@@ -450,7 +450,9 @@ describe("storedConfigValue", () => {
   });
 
   it("keeps the emptied value a mapping, not a null a round-trip could drop", () => {
-    expect(marksDictionary({ obsictionary: storedConfigValue(emptyConfig(), true) })).toBe(true);
+    expect(marksDictionary({ "dictionary-notes": storedConfigValue(emptyConfig(), true) })).toBe(
+      true,
+    );
   });
 
   it("leaves a note without the key alone", () => {

@@ -45,7 +45,7 @@ export const SORT_LABELS: Record<SortMode, string> = {
   shuffled: "Random",
 };
 
-export interface ObsictionarySettings {
+export interface DictionaryNotesSettings {
   /** Content columns a new dictionary is created with (first = card front/key). */
   newDictionaryColumns: string[];
   /** Target retention for FSRS scheduling (0..1). */
@@ -76,8 +76,6 @@ export interface ObsictionarySettings {
    * nothing.
    */
   iconicIntegration: boolean;
-  /** Whether the one-time offer to convert tag-marked dictionaries was made. */
-  migrationOffered: boolean;
   /** Master switch for every reminder below. */
   remindersEnabled: boolean;
   /** Notice on start-up when cards are waiting. */
@@ -118,7 +116,7 @@ export function parseRemindMinutes(input: string, current: number): number {
   return clampRemindMinutes(value);
 }
 
-export const DEFAULT_SETTINGS: ObsictionarySettings = {
+export const DEFAULT_SETTINGS: DictionaryNotesSettings = {
   newDictionaryColumns: [...DEFAULT_COLUMNS],
   fsrsRetention: 0.9,
   reviewScope: "note",
@@ -128,7 +126,6 @@ export const DEFAULT_SETTINGS: ObsictionarySettings = {
   keepQuestionOnReveal: true,
   statsIncludeMuted: false,
   iconicIntegration: false,
-  migrationOffered: false,
   remindersEnabled: true,
   remindOnStartup: true,
   remindEveryMinutes: 0,
@@ -150,8 +147,8 @@ interface LegacySettings {
  * file a user may well have edited, and it feeds a timer.
  */
 export function migrateSettings(
-  stored: Partial<ObsictionarySettings> & LegacySettings,
-): Partial<ObsictionarySettings> {
+  stored: Partial<DictionaryNotesSettings> & LegacySettings,
+): Partial<DictionaryNotesSettings> {
   const { remindEveryHours, ...rest } = stored;
   if (rest.remindEveryMinutes !== undefined) {
     return { ...rest, remindEveryMinutes: clampRemindMinutes(rest.remindEveryMinutes) };

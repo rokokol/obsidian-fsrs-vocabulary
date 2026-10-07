@@ -7,7 +7,7 @@ import {
   parseRemindMinutes,
   sanitizePropertyKeys,
   selectProperties,
-  type ObsictionarySettings,
+  type DictionaryNotesSettings,
 } from "../src/settings";
 
 describe("frontColumnFor", () => {
@@ -125,7 +125,9 @@ describe("migrateSettings", () => {
     expect(migrateSettings({ remindEveryHours: NaN })).toEqual({ remindEveryMinutes: 0 });
     expect(migrateSettings({ remindEveryMinutes: Infinity })).toEqual({ remindEveryMinutes: 0 });
     expect(
-      migrateSettings({ remindEveryMinutes: "soon" } as unknown as Partial<ObsictionarySettings>),
+      migrateSettings({
+        remindEveryMinutes: "soon",
+      } as unknown as Partial<DictionaryNotesSettings>),
     ).toEqual({ remindEveryMinutes: 0 });
   });
 

@@ -1,5 +1,5 @@
 ---
-obsictionary:
+dictionary-notes:
   presets:
     - name: Flag to country
       front:

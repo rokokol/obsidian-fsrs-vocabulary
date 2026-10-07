@@ -13,7 +13,7 @@ export const REDRAW_DELAY = 400;
 
 /** Shared so the two views cannot drift into wording it differently. */
 export const NO_DICTIONARIES =
-  "No dictionaries yet. Give a note an obsictionary property to start one.";
+  "No dictionaries yet. Give a note a dictionary-notes property to start one.";
 
 export interface DictionaryRow {
   file: TFile;
