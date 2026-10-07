@@ -1,24 +1,25 @@
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
-import importPlugin from "eslint-plugin-import";
+import obsidianmd from "eslint-plugin-obsidianmd";
 
 export default tseslint.config(
   {
     ignores: ["main.js", "dist/**", "node_modules/**", "**/*.mjs"],
   },
-  js.configs.recommended,
-  ...tseslint.configs.strictTypeChecked,
-  ...tseslint.configs.stylisticTypeChecked,
+  // The rules the community directory's automated review applies
+  ...obsidianmd.configs.recommended,
   {
     files: ["**/*.ts"],
+    extends: [
+      js.configs.recommended,
+      ...tseslint.configs.strictTypeChecked,
+      ...tseslint.configs.stylisticTypeChecked,
+    ],
     languageOptions: {
       parserOptions: {
         projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
-    },
-    plugins: {
-      import: importPlugin,
     },
     rules: {
       "import/order": [

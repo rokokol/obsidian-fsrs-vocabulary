@@ -669,9 +669,7 @@ export default class FsrsVocabularyPlugin extends Plugin {
    */
   private interceptOpens(): void {
     const proto = WorkspaceLeaf.prototype;
-    // Held unbound on purpose: it is called back with the leaf as `this`, and
-    // put back on the prototype on unload.
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+    // eslint-disable-next-line @typescript-eslint/unbound-method -- held unbound on purpose: it is called back with the leaf as `this`, and put back on the prototype on unload
     const original = proto.setViewState;
     const rewrite = (viewState: ViewState): ViewState =>
       this.dictionaryViewState(viewState) ?? viewState;
