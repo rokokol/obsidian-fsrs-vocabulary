@@ -152,6 +152,26 @@ describe("migrateSettings", () => {
     expect(migrateSettings({ fsrsWeights: weights })).toEqual({ fsrsWeights: weights });
   });
 
+  it("keeps the record of the last fit", () => {
+    const fsrsFit = { at: 1000, items: 420, status: "adopted", lossBefore: 0.4, lossAfter: 0.3 } as const;
+    expect(migrateSettings({ fsrsFit })).toEqual({ fsrsFit });
+  });
+
+  it("forgets a fit record it cannot read", () => {
+    // The record decides when the next automatic fit runs; a broken one should
+    // mean "no fit yet", not a timer that never fires.
+    const broken = [
+      { at: 1000, items: "420", status: "adopted", lossBefore: 0.4, lossAfter: 0.3 },
+      { at: 1000, items: 420, status: "maybe", lossBefore: 0.4, lossAfter: 0.3 },
+      { at: 1000, items: 420, status: "kept", lossBefore: "0.4", lossAfter: 0.3 },
+      { at: null, items: 420, status: "kept", lossBefore: 0.4, lossAfter: 0.3 },
+      "yesterday",
+    ];
+    for (const fsrsFit of broken) {
+      expect(migrateSettings({ fsrsFit } as never)).toEqual({ fsrsFit: null });
+    }
+  });
+
   it("falls back to the default weights for a set the scheduler cannot use", () => {
     // `data.json` is a plain file; weights of another FSRS version, or a hand edit,
     // must not reach the scheduler, which would throw on every grade.

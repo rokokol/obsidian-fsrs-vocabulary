@@ -46,6 +46,29 @@ export const SORT_LABELS: Record<SortMode, string> = {
   shuffled: "Random",
 };
 
+/** What the last fit of the weights found, for the settings tab and the next fit. */
+export interface FitRecord {
+  /** When it ran, in epoch milliseconds. */
+  at: number;
+  /** Training items it had; the next automatic fit waits for enough new ones. */
+  items: number;
+  status: "kept" | "adopted";
+  /** Log loss on the held-out reviews of the weights in use, and of the candidate. */
+  lossBefore: number | null;
+  lossAfter: number | null;
+}
+
+/** A stored fit record, or null when it is not one. */
+function sanitizeFit(value: unknown): FitRecord | null {
+  if (typeof value !== "object" || value === null) return null;
+  const { at, items, status, lossBefore, lossAfter } = value as Record<string, unknown>;
+  const finite = (x: unknown): x is number => typeof x === "number" && Number.isFinite(x);
+  const loss = (x: unknown): x is number | null => x === null || finite(x);
+  if (!finite(at) || !finite(items) || !loss(lossBefore) || !loss(lossAfter)) return null;
+  if (status !== "kept" && status !== "adopted") return null;
+  return { at, items, status, lossBefore, lossAfter };
+}
+
 export interface FsrsVocabularySettings {
   /** Content columns a new dictionary is created with (first = card front/key). */
   newDictionaryColumns: string[];
@@ -56,6 +79,8 @@ export interface FsrsVocabularySettings {
    * defaults. One set for every dictionary.
    */
   fsrsWeights: number[] | null;
+  /** The last fit of the weights, adopted or not; null before the first. */
+  fsrsFit: FitRecord | null;
   /** Whether review pulls due cards from all dictionaries or just the active note. */
   reviewScope: "note" | "vault";
   /** Whether dictionary notes auto-open in the interactive view or as markdown. */
@@ -126,6 +151,7 @@ export const DEFAULT_SETTINGS: FsrsVocabularySettings = {
   newDictionaryColumns: [...DEFAULT_COLUMNS],
   fsrsRetention: 0.9,
   fsrsWeights: null,
+  fsrsFit: null,
   reviewScope: "note",
   defaultView: "dictionary",
   defaultSort: "manual",
@@ -157,8 +183,10 @@ export function migrateSettings(
   stored: Partial<FsrsVocabularySettings> & LegacySettings,
 ): Partial<FsrsVocabularySettings> {
   const { remindEveryHours, ...rest } = stored;
-  const weights =
-    rest.fsrsWeights === undefined ? {} : { fsrsWeights: sanitizeWeights(rest.fsrsWeights) };
+  const weights = {
+    ...(rest.fsrsWeights === undefined ? {} : { fsrsWeights: sanitizeWeights(rest.fsrsWeights) }),
+    ...(rest.fsrsFit === undefined ? {} : { fsrsFit: sanitizeFit(rest.fsrsFit) }),
+  };
   if (rest.remindEveryMinutes !== undefined) {
     return {
       ...rest,

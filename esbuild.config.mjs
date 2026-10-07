@@ -40,6 +40,45 @@ const copyPlugin = {
   },
 };
 
+/**
+ * `import source from "inline-worker:./worker"` bundles that module on its own and
+ * hands back the bundle as text, which the plugin turns into a Web Worker through a
+ * blob URL. The plugin ships as main.js alone, so a worker cannot be a file of its
+ * own; and a WebAssembly module the worker imports is inlined as bytes for the same
+ * reason.
+ */
+const inlineWorker = {
+  name: "inline-worker",
+  setup(build) {
+    build.onResolve({ filter: /^inline-worker:/ }, (args) => ({
+      path: path.resolve(args.resolveDir, args.path.slice("inline-worker:".length)),
+      namespace: "inline-worker",
+    }));
+    build.onLoad({ filter: /.*/, namespace: "inline-worker" }, async (args) => {
+      const result = await esbuild.build({
+        entryPoints: [args.path],
+        resolveExtensions: [".ts", ".js"],
+        bundle: true,
+        write: false,
+        format: "iife",
+        target: "es2022",
+        minify: production,
+        loader: { ".wasm": "binary" },
+        // fsrs-browser locates its own files from import.meta.url, on paths the
+        // worker never takes: it is given its module as bytes and starts no threads.
+        define: { "import.meta.url": '"about:blank"' },
+        logLevel: "warning",
+        metafile: true,
+      });
+      return {
+        contents: result.outputFiles[0].text,
+        loader: "text",
+        watchFiles: Object.keys(result.metafile.inputs).map((file) => path.resolve(file)),
+      };
+    });
+  },
+};
+
 // Load OBSIDIAN_PLUGIN_DIR from a local .env if present (dev convenience).
 const envFile = path.resolve(".env");
 if (fs.existsSync(envFile)) {
@@ -78,7 +117,7 @@ const context = await esbuild.context({
   treeShaking: true,
   outfile: "main.js",
   minify: production,
-  plugins: [copyPlugin],
+  plugins: [inlineWorker, copyPlugin],
 });
 
 if (production) {

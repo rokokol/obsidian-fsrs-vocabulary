@@ -28,6 +28,8 @@ import {
 } from "./obsidian/dictionaryFile";
 import { ReviewHistory } from "./obsidian/history";
 import { forgetIconicIcons, readIconicIcons } from "./obsidian/iconic";
+import { WeightFitter } from "./optimizer/fitter";
+import { runFitInWorker } from "./optimizer/runner";
 import { parseStatsBlock, parseWikilink } from "./render/blocks";
 import { renderDictionaryEmbeds } from "./render/dictionaryEmbed";
 import { renderDictionary, type ReviewMode } from "./render/dictionaryView";
@@ -49,6 +51,11 @@ import { errorMessage, plural } from "./util";
 import { DASHBOARD_VIEW_TYPE, DashboardView } from "./view/dashboardView";
 import { DICTIONARY_VIEW_TYPE, DictionaryEditorView } from "./view/dictionaryEditorView";
 import { DictionaryTilesView, TILES_VIEW_TYPE } from "./view/tilesView";
+
+/** How long after start-up the first automatic fit check waits. */
+const STARTUP_FIT_DELAY = 60 * 1000;
+/** How long after the last grade the automatic fit check waits. */
+const SESSION_FIT_DELAY = 2 * 60 * 1000;
 
 /** "1 dictionary" / "4 dictionaries" — the one plural in the plugin that is irregular. */
 function dictionaries(count: number): string {
@@ -97,15 +104,34 @@ export default class FsrsVocabularyPlugin extends Plugin {
   private readonly statsBlocks = new Set<() => void>();
   /** The review log; set first thing in `onload`, before any session can start. */
   private history: ReviewHistory | null = null;
+  /** Fits the weights to the log; set in `onload` beside it. */
+  fitter: WeightFitter | null = null;
+  /** Pending check for an automatic fit, pushed back by every graded review. */
+  private fitCheckTimer: number | null = null;
+  /** Called after a fit changed the weights or its record, to redraw what shows them. */
+  readonly fitListeners = new Set<() => void>();
 
   override async onload(): Promise<void> {
     await this.loadSettings();
-    this.history = new ReviewHistory(
+    const history = new ReviewHistory(
       this.app.vault.adapter,
       this.pluginDir(),
       devicePlatform(),
       deviceId(this.app),
     );
+    this.history = history;
+    this.fitter = new WeightFitter({
+      readHistory: async () => (await history.readAll()).entries,
+      runFit: runFitInWorker,
+      current: () => ({ weights: this.settings.fsrsWeights, fit: this.settings.fsrsFit }),
+      save: async (weights, fit) => {
+        this.settings.fsrsWeights = weights;
+        this.settings.fsrsFit = fit;
+        await this.saveSettings();
+        for (const listener of this.fitListeners) listener();
+      },
+      now: () => Date.now(),
+    });
     this.addSettingTab(new FsrsVocabularySettingTab(this.app, this));
 
     this.registerView(DICTIONARY_VIEW_TYPE, (leaf) => new DictionaryEditorView(leaf, this));
@@ -137,6 +163,9 @@ export default class FsrsVocabularyPlugin extends Plugin {
       this.updateChrome();
       this.startupReminderPending = this.settings.remindersEnabled && this.settings.remindOnStartup;
       this.applyTracking();
+      // Reviews synced in from another device count too, and only a fresh start
+      // sees them; a while after it, so the fit does not compete with start-up.
+      this.scheduleFitCheck(STARTUP_FIT_DELAY);
     });
     // `onLayoutReady` says the panes are up, not that the notes have been read:
     // on a cold start Obsidian indexes frontmatter after it draws the workspace,
@@ -659,6 +688,32 @@ export default class FsrsVocabularyPlugin extends Plugin {
     this.history?.append(entry).catch((err: unknown) => {
       console.error("[fsrs-vocabulary] could not log a review", err);
     });
+    this.scheduleFitCheck(SESSION_FIT_DELAY);
+  }
+
+  /**
+   * Check for a due automatic fit `delay` milliseconds from now, replacing any check
+   * already pending. Every grade pushes it back, so it runs once a session is over
+   * rather than in the middle of one.
+   */
+  private scheduleFitCheck(delay: number): void {
+    if (this.fitCheckTimer !== null) window.clearTimeout(this.fitCheckTimer);
+    this.fitCheckTimer = window.setTimeout(() => {
+      this.fitCheckTimer = null;
+      void this.fitIfDue();
+    }, delay);
+  }
+
+  /** Run an automatic fit if one is due, and say so when it changed the weights. */
+  private async fitIfDue(): Promise<void> {
+    try {
+      const outcome = await this.fitter?.fitIfDue();
+      if (outcome?.status === "adopted") {
+        new Notice("Review scheduling now follows a memory model fitted to your own reviews.");
+      }
+    } catch (err) {
+      console.error("[fsrs-vocabulary] could not fit the memory model", err);
+    }
   }
 
   /** Flip a dictionary's mute flag; muted dictionaries stay out of reminders. */
@@ -1128,6 +1183,8 @@ export default class FsrsVocabularyPlugin extends Plugin {
   }
 
   override onunload(): void {
+    if (this.fitCheckTimer !== null) window.clearTimeout(this.fitCheckTimer);
+    this.fitListeners.clear();
     this.dueTracker.dispose();
     forgetIconicIcons();
     // The blocks' own cleanup runs when Obsidian unloads them, which for a note

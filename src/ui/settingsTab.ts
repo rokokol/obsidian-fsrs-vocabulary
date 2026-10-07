@@ -10,21 +10,36 @@ import {
   type DefaultView,
   type SortMode,
 } from "../settings";
+import { renderMemoryModel } from "./memoryModelSettings";
 
 /** Where to send someone who does not have Iconic yet. */
 const ICONIC_URL = "https://github.com/gfxholo/iconic";
 
 export class FsrsVocabularySettingTab extends PluginSettingTab {
   private readonly plugin: FsrsVocabularyPlugin;
+  /** Where the memory model section is drawn, to redraw it when a fit lands. */
+  private memoryModelEl: HTMLElement | null = null;
+  private readonly onFit = (): void => {
+    if (!this.memoryModelEl) return;
+    this.memoryModelEl.empty();
+    renderMemoryModel(this.memoryModelEl, this.plugin);
+  };
 
   constructor(app: App, plugin: FsrsVocabularyPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
 
+  override hide(): void {
+    this.plugin.fitListeners.delete(this.onFit);
+    this.memoryModelEl = null;
+    super.hide();
+  }
+
   override display(): void {
     const { containerEl } = this;
     containerEl.empty();
+    this.plugin.fitListeners.add(this.onFit);
 
     new Setting(containerEl)
       .setName("New dictionary columns")
@@ -148,6 +163,8 @@ export class FsrsVocabularySettingTab extends PluginSettingTab {
         });
       });
 
+    this.memoryModelEl = containerEl.createDiv();
+    renderMemoryModel(this.memoryModelEl, this.plugin);
     this.renderReminders(containerEl);
     this.renderIntegrations(containerEl);
   }
