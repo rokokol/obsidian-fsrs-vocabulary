@@ -21,6 +21,20 @@ describe("srs encode/decode", () => {
     expect(decoded?.due.toISOString()).toBe(card.due.toISOString());
   });
 
+  it("round-trips the learning step a card is on", () => {
+    // A learning card graded Good moves to its second step; losing that on disk
+    // would send it back to the first step on every review.
+    const now = new Date("2026-07-07T00:00:00Z");
+    const learning = review(newCard(now), "good", 0.9, now);
+    expect(learning.learning_steps).toBeGreaterThan(0);
+    expect(decodeCard(encodeCard(learning))?.learning_steps).toBe(learning.learning_steps);
+  });
+
+  it("reads a cell written before learning steps were stored as the first step", () => {
+    const cell = '{"s":1,"r":1,"l":0,"S":2.3,"D":5.1,"e":0,"c":0,"d":"2026-07-07T00:10:00.000Z"}';
+    expect(decodeCard(cell)?.learning_steps).toBe(0);
+  });
+
   it("treats blank and malformed cells as new cards", () => {
     expect(decodeCard("")).toBeNull();
     expect(decodeCard("not json")).toBeNull();

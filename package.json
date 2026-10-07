@@ -41,6 +41,6 @@
     "vitest": "^2.1.8"
   },
   "dependencies": {
-    "ts-fsrs": "^4.7.0"
+    "ts-fsrs": "^5.4.2"
   }
 }

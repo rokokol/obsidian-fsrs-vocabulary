@@ -27,10 +27,10 @@ interface StoredSrs {
   l: number; // lapses
   S: number; // stability
   D: number; // difficulty
-  e: number; // elapsed_days
   c: number; // scheduled_days
   d: string; // due (ISO)
   t?: string; // last_review (ISO)
+  p?: number; // learning_steps; absent = 0, the first step
 }
 
 const round = (n: number): number => Math.round(n * 10000) / 10000;
@@ -48,10 +48,10 @@ export function encodeCard(card: Card): string {
     l: card.lapses,
     S: round(card.stability),
     D: round(card.difficulty),
-    e: card.elapsed_days,
     c: card.scheduled_days,
     d: card.due.toISOString(),
     ...(card.last_review ? { t: card.last_review.toISOString() } : {}),
+    ...(card.learning_steps > 0 ? { p: card.learning_steps } : {}),
   };
   return JSON.stringify(stored);
 }
@@ -87,21 +87,24 @@ export function decodeCard(cell: string): Card | null {
   const l = asNumber(o["l"]);
   const S = asNumber(o["S"]);
   const D = asNumber(o["D"]);
-  const e = asNumber(o["e"]);
   const c = asNumber(o["c"]);
   const due = asIsoDate(o["d"]);
   if (s === null || r === null || l === null || S === null || D === null) return null;
-  if (e === null || c === null || due === null) return null;
+  if (c === null || due === null) return null;
 
   const last = asIsoDate(o["t"]);
+  // Spread over an empty card for the fields the cell does not carry. The one that
+  // matters is `elapsed_days`: the scheduler recomputes it from `last_review` on
+  // every grade, and older cells that stored it as `e` are read without it.
   const card: Card = {
+    ...createEmptyCard(due),
     state: s,
     reps: r,
     lapses: l,
     stability: S,
     difficulty: D,
-    elapsed_days: e,
     scheduled_days: c,
+    learning_steps: asNumber(o["p"]) ?? 0,
     due,
     ...(last ? { last_review: last } : {}),
   };
