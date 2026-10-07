@@ -1,3 +1,4 @@
+import css from "@eslint/css";
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import obsidianmd from "eslint-plugin-obsidianmd";
@@ -6,8 +7,27 @@ export default tseslint.config(
   {
     ignores: ["main.js", "dist/**", "node_modules/**", "**/*.mjs"],
   },
-  // The rules the community directory's automated review applies
-  ...obsidianmd.configs.recommended,
+  // The rules the community directory's automated review applies. Its first entry has
+  // no `files` and sets JavaScript rules that cannot parse a stylesheet, so it skips CSS
+  ...obsidianmd.configs.recommended.map((config) =>
+    config.files ? config : { ...config, ignores: ["**/*.css"] },
+  ),
+  // The directory lints styles.css too, so lint it here with the same kind of rules
+  {
+    files: ["**/*.css"],
+    language: "css/css",
+    plugins: { css },
+    extends: [css.configs.recommended],
+    rules: {
+      "css/no-important": "error",
+      // Obsidian defines the --text-normal family of variables when the app runs, so the
+      // linter cannot see them
+      "css/no-invalid-properties": ["error", { allowUnknownVariables: true }],
+      // Baseline describes the web in general. Obsidian ships its own engine and the
+      // manifest sets the oldest app version, which is the measure for what is safe here
+      "css/use-baseline": "off",
+    },
+  },
   {
     files: ["**/*.ts"],
     extends: [
