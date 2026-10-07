@@ -1,6 +1,6 @@
 ---
 name: dictionary-notes
-description: Create and edit dictionaries of the Dictionary Notes plugin for Obsidian — markdown notes with a words table, spaced-repetition review, presets, custom columns, audio and image attachments, and embedded statistics. Use when the user asks to create a dictionary, add or import words, add a column, attach a pronunciation or a picture, embed dictionary stats in a note, or set up review presets. Triggers: dictionary note, vocabulary, add a word, add words to my dictionary, flashcards, spaced repetition, review preset, dictionary stats, словарь, добавь слово, добавь слова в словарь, заведи словарь, карточки, интервальные повторения, статистика словаря
+description: "Create and edit dictionaries of the Dictionary Notes plugin for Obsidian — markdown notes with a words table, spaced-repetition review, presets, custom columns, audio and image attachments, and embedded statistics. Use when the user asks to create a dictionary, add or import words, add a column, attach a pronunciation or a picture, embed dictionary stats in a note, or set up review presets. Triggers: dictionary note, vocabulary, add a word, add words to my dictionary, flashcards, spaced repetition, review preset, dictionary stats, словарь, добавь слово, добавь слова в словарь, заведи словарь, карточки, интервальные повторения, статистика словаря"
 license: MIT
 ---
 
