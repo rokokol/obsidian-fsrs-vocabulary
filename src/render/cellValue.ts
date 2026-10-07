@@ -88,7 +88,7 @@ export function renderCellValue(
     if ("media" in seg) {
       appendMedia(app, el, seg.media);
     } else if (seg.text.trim() !== "") {
-      const wrapper = el.createDiv({ cls: "dictionary-notes-cell-text" });
+      const wrapper = el.createDiv({ cls: "fsrs-vocabulary-cell-text" });
       void MarkdownRenderer.render(app, seg.text, wrapper, sourcePath, component);
     }
   }

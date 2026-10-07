@@ -30,7 +30,7 @@ import { renderDictionary, type ReviewMode } from "./render/dictionaryView";
 import { renderStats, type StatActions } from "./render/statsView";
 import { DueTracker } from "./review/dueTracker";
 import { quickOptions, type ReviewSlice } from "./review/options";
-import { DEFAULT_SETTINGS, migrateSettings, type DictionaryNotesSettings } from "./settings";
+import { DEFAULT_SETTINGS, migrateSettings, type FsrsVocabularySettings } from "./settings";
 import { ConfirmModal } from "./ui/confirmModal";
 import {
   promptAddWord,
@@ -40,7 +40,7 @@ import {
   reviewSlice,
   type ReviewPrefs,
 } from "./ui/prompts";
-import { DictionaryNotesSettingTab } from "./ui/settingsTab";
+import { FsrsVocabularySettingTab } from "./ui/settingsTab";
 import { errorMessage, plural } from "./util";
 import { DASHBOARD_VIEW_TYPE, DashboardView } from "./view/dashboardView";
 import { DICTIONARY_VIEW_TYPE, DictionaryEditorView } from "./view/dictionaryEditorView";
@@ -51,14 +51,14 @@ function dictionaries(count: number): string {
   return `${count.toString()} ${count === 1 ? "dictionary" : "dictionaries"}`;
 }
 
-/** What an `dictionary-notes-stats` block resolved to: dictionaries, and scopes that found none. */
+/** What an `fsrs-vocabulary-stats` block resolved to: dictionaries, and scopes that found none. */
 interface StatsBlockFiles {
   files: TFile[];
   missing: string[];
 }
 
-export default class DictionaryNotesPlugin extends Plugin {
-  override settings: DictionaryNotesSettings = DEFAULT_SETTINGS;
+export default class FsrsVocabularyPlugin extends Plugin {
+  override settings: FsrsVocabularySettings = DEFAULT_SETTINGS;
   readonly cache = new DictionaryCache(this.app);
   /** Paths the user explicitly asked to keep open as markdown (skip auto-swap). */
   private readonly forceMarkdown = new Set<string>();
@@ -89,12 +89,12 @@ export default class DictionaryNotesPlugin extends Plugin {
    * dictionaries means nothing, and after it, it means the vault has none.
    */
   private settled = false;
-  /** How to redraw each `dictionary-notes-stats` block and dictionary embed on screen. */
+  /** How to redraw each `fsrs-vocabulary-stats` block and dictionary embed on screen. */
   private readonly statsBlocks = new Set<() => void>();
 
   override async onload(): Promise<void> {
     await this.loadSettings();
-    this.addSettingTab(new DictionaryNotesSettingTab(this.app, this));
+    this.addSettingTab(new FsrsVocabularySettingTab(this.app, this));
 
     this.registerView(DICTIONARY_VIEW_TYPE, (leaf) => new DictionaryEditorView(leaf, this));
     this.registerView(DASHBOARD_VIEW_TYPE, (leaf) => new DashboardView(leaf, this));
@@ -128,7 +128,7 @@ export default class DictionaryNotesPlugin extends Plugin {
     });
     // `onLayoutReady` says the panes are up, not that the notes have been read:
     // on a cold start Obsidian indexes frontmatter after it draws the workspace,
-    // so detection there sees no `dictionary-notes` property anywhere and the index
+    // so detection there sees no `fsrs-vocabulary` property anywhere and the index
     // comes back empty — the dashboard says there are no dictionaries and a
     // restored dictionary tab stays plain markdown until the user reopens it.
     // `resolved` is the cache announcing it has read everything, so index again,
@@ -152,7 +152,7 @@ export default class DictionaryNotesPlugin extends Plugin {
       }),
     );
 
-    this.addRibbonIcon("layout-dashboard", "Dictionary Notes dashboard", () => {
+    this.addRibbonIcon("layout-dashboard", "FSRS Vocabulary dashboard", () => {
       void this.openDashboard();
     });
 
@@ -162,7 +162,7 @@ export default class DictionaryNotesPlugin extends Plugin {
       if (file && leaf && isDictionaryFile(this.app, file)) {
         void this.openAsDictionary(file, leaf);
       } else {
-        new Notice("Active note is not a Dictionary Notes dictionary.");
+        new Notice("Active note is not an FSRS Vocabulary dictionary.");
       }
     });
 
@@ -177,7 +177,7 @@ export default class DictionaryNotesPlugin extends Plugin {
       );
     });
 
-    this.registerMarkdownCodeBlockProcessor("dictionary-notes-stats", (source, el, ctx) => {
+    this.registerMarkdownCodeBlockProcessor("fsrs-vocabulary-stats", (source, el, ctx) => {
       this.liveStats(ctx, el, () => this.statsFiles(source, ctx.sourcePath));
     });
 
@@ -462,8 +462,8 @@ export default class DictionaryNotesPlugin extends Plugin {
       });
       this.statusBarObserver = observer;
     }
-    const empty = bar !== null && DictionaryNotesPlugin.isStatusBarEmpty(bar);
-    document.body.toggleClass("dictionary-notes-hide-status", active && empty);
+    const empty = bar !== null && FsrsVocabularyPlugin.isStatusBarEmpty(bar);
+    document.body.toggleClass("fsrs-vocabulary-hide-status", active && empty);
   }
 
   /** True when every status-bar item is hidden (computed display none). */
@@ -514,7 +514,7 @@ export default class DictionaryNotesPlugin extends Plugin {
   private applyStatusBar(): void {
     if (this.statusBarEl || !this.statusBarWanted()) return;
     const el = this.addStatusBarItem();
-    el.addClass("dictionary-notes-status", "mod-clickable");
+    el.addClass("fsrs-vocabulary-status", "mod-clickable");
     el.hide();
     el.addEventListener("click", () => {
       void this.reviewDue();
@@ -578,9 +578,9 @@ export default class DictionaryNotesPlugin extends Plugin {
     if (count === 0) {
       el.hide();
     } else {
-      setIcon(el.createSpan({ cls: "dictionary-notes-status-icon" }), "book-a");
+      setIcon(el.createSpan({ cls: "fsrs-vocabulary-status-icon" }), "book-a");
       el.createSpan({ text: count.toString() });
-      el.setAttribute("aria-label", `Review ${DictionaryNotesPlugin.cards(count)} due`);
+      el.setAttribute("aria-label", `Review ${FsrsVocabularyPlugin.cards(count)} due`);
       el.show();
     }
     this.updateChrome();
@@ -596,7 +596,7 @@ export default class DictionaryNotesPlugin extends Plugin {
     const count = this.dueTracker.count();
     if (count === 0) return;
     const notice = new Notice("", 10000);
-    notice.messageEl.setText(`${DictionaryNotesPlugin.cards(count)} due for review. `);
+    notice.messageEl.setText(`${FsrsVocabularyPlugin.cards(count)} due for review. `);
     const link = notice.messageEl.createEl("a", { text: "Review now", href: "#" });
     link.addEventListener("click", (evt) => {
       evt.preventDefault();
@@ -640,7 +640,7 @@ export default class DictionaryNotesPlugin extends Plugin {
       return;
     }
     if (!written) {
-      new Notice("Could not update this note: its dictionary-notes property is not a mapping.");
+      new Notice("Could not update this note: its fsrs-vocabulary property is not a mapping.");
       return;
     }
     new Notice(written.mute ? `Muted ${file.basename}.` : `Unmuted ${file.basename}.`);
@@ -730,7 +730,7 @@ export default class DictionaryNotesPlugin extends Plugin {
    * passes land within seconds of a normal start; after a mid-session enable the
    * `resolved` one waits for whatever the user edits next, since the cache resolved
    * long before this instance existed. That same coupling to `changed` is what
-   * makes this safe: when the user types the `dictionary-notes` property by hand,
+   * makes this safe: when the user types the `fsrs-vocabulary` property by hand,
    * `changed` folds it in first, so the rescan reports nothing and this returns
    * before the sweep — which is what keeps the swap off a cursor still sitting in
    * the frontmatter block.
@@ -757,7 +757,7 @@ export default class DictionaryNotesPlugin extends Plugin {
 
   /**
    * Swap a leaf that is *already* showing a dictionary as markdown — a restored
-   * workspace at load, or a note the user has just given the `dictionary-notes`
+   * workspace at load, or a note the user has just given the `fsrs-vocabulary`
    * property to. Ordinary opens never reach this: `interceptOpens` catches them
    * before a markdown view is ever built.
    *
@@ -818,7 +818,7 @@ export default class DictionaryNotesPlugin extends Plugin {
   }
 
   /**
-   * Files for an `dictionary-notes-stats` block: an empty body means the current note,
+   * Files for an `fsrs-vocabulary-stats` block: an empty body means the current note,
    * and otherwise every line is a scope, in the order they were written.
    *
    * Deduplicated by path, since a block may name a dictionary that `vault` already
@@ -956,7 +956,7 @@ export default class DictionaryNotesPlugin extends Plugin {
         // and one unreadable dictionary should not raise a row of popups.
         el.empty();
         el.createDiv({
-          cls: "dictionary-notes-stats-empty is-error",
+          cls: "fsrs-vocabulary-stats-empty is-error",
           text: `Could not read the dictionaries for this block: ${errorMessage(err)}`,
         });
       });
@@ -1039,7 +1039,7 @@ export default class DictionaryNotesPlugin extends Plugin {
   /**
    * Repaint everything that renders dictionary content. Some settings — which
    * properties to show, whether muted dictionaries count — change what the
-   * dashboard totals and every `dictionary-notes-stats` block mean, and neither
+   * dashboard totals and every `fsrs-vocabulary-stats` block mean, and neither
    * redraws on its own: the dashboard waits for a dictionary edit, and a block's
    * processor only runs again on a re-render.
    *
@@ -1105,11 +1105,11 @@ export default class DictionaryNotesPlugin extends Plugin {
     // Obsidian removes the item itself; dropping the handle keeps a late
     // callback from painting into a detached element.
     this.statusBarEl = null;
-    document.body.removeClass("dictionary-notes-hide-status");
+    document.body.removeClass("fsrs-vocabulary-hide-status");
   }
 
   async loadSettings(): Promise<void> {
-    const stored = (await this.loadData()) as Partial<DictionaryNotesSettings> | null;
+    const stored = (await this.loadData()) as Partial<FsrsVocabularySettings> | null;
     this.settings = { ...DEFAULT_SETTINGS, ...migrateSettings(stored ?? {}) };
   }
 

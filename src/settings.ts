@@ -45,7 +45,7 @@ export const SORT_LABELS: Record<SortMode, string> = {
   shuffled: "Random",
 };
 
-export interface DictionaryNotesSettings {
+export interface FsrsVocabularySettings {
   /** Content columns a new dictionary is created with (first = card front/key). */
   newDictionaryColumns: string[];
   /** Target retention for FSRS scheduling (0..1). */
@@ -116,7 +116,7 @@ export function parseRemindMinutes(input: string, current: number): number {
   return clampRemindMinutes(value);
 }
 
-export const DEFAULT_SETTINGS: DictionaryNotesSettings = {
+export const DEFAULT_SETTINGS: FsrsVocabularySettings = {
   newDictionaryColumns: [...DEFAULT_COLUMNS],
   fsrsRetention: 0.9,
   reviewScope: "note",
@@ -147,8 +147,8 @@ interface LegacySettings {
  * file a user may well have edited, and it feeds a timer.
  */
 export function migrateSettings(
-  stored: Partial<DictionaryNotesSettings> & LegacySettings,
-): Partial<DictionaryNotesSettings> {
+  stored: Partial<FsrsVocabularySettings> & LegacySettings,
+): Partial<FsrsVocabularySettings> {
   const { remindEveryHours, ...rest } = stored;
   if (rest.remindEveryMinutes !== undefined) {
     return { ...rest, remindEveryMinutes: clampRemindMinutes(rest.remindEveryMinutes) };

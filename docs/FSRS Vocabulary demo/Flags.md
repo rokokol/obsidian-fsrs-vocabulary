@@ -1,5 +1,5 @@
 ---
-dictionary-notes:
+fsrs-vocabulary:
   presets:
     - name: Flag to country
       front:

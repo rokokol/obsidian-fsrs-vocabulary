@@ -1,6 +1,6 @@
 {
-  "id": "dictionary-notes",
-  "name": "Dictionary Notes",
+  "id": "fsrs-vocabulary",
+  "name": "FSRS Vocabulary",
   "version": "0.3.0",
   "minAppVersion": "1.5.0",
   "description": "Turn notes into spaced-repetition dictionaries: styled dictionary view, per-word FSRS review, stats, presets and audio/image attachments.",

@@ -1,5 +1,5 @@
 ---
-dictionary-notes:
+fsrs-vocabulary:
   presets:
     - name: From the translation
       front:
@@ -14,7 +14,7 @@ dictionary-notes:
         - translation
         - example
 level: B2
-source: "[[Dictionary Notes demo]]"
+source: "[[FSRS Vocabulary demo]]"
 ---
 > [!info]+ Theory
 > Everything above `## Words` is yours: callouts, images, formulas — all rendered

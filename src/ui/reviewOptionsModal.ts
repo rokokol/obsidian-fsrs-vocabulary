@@ -89,7 +89,7 @@ export class ReviewOptionsModal extends Modal {
   }
 
   override onOpen(): void {
-    this.modalEl.addClass("dictionary-notes-options-modal");
+    this.modalEl.addClass("fsrs-vocabulary-options-modal");
     // Open showing exactly what the quick button would have done — through the
     // same path a click takes, so a preset naming a column the table has since
     // lost is reported here too, not only when picked by hand.
@@ -118,26 +118,26 @@ export class ReviewOptionsModal extends Modal {
 
   private renderPresets(parent: HTMLElement): void {
     if (this.config.presets.length === 0) return;
-    const section = parent.createDiv({ cls: "dictionary-notes-options-section" });
-    section.createDiv({ cls: "dictionary-notes-options-label", text: "Presets" });
-    const row = section.createDiv({ cls: "dictionary-notes-chips" });
+    const section = parent.createDiv({ cls: "fsrs-vocabulary-options-section" });
+    section.createDiv({ cls: "fsrs-vocabulary-options-label", text: "Presets" });
+    const row = section.createDiv({ cls: "fsrs-vocabulary-chips" });
 
     this.config.presets.forEach((preset, index) => {
       // A wrapper, not a button: the kebab is interactive and must not nest.
-      const chip = row.createDiv({ cls: "dictionary-notes-chip is-preset" });
+      const chip = row.createDiv({ cls: "fsrs-vocabulary-chip is-preset" });
       if (preset.name === this.source) chip.addClass("is-active");
       const label = chip.createEl("button", {
-        cls: "dictionary-notes-chip-label",
+        cls: "fsrs-vocabulary-chip-label",
         text: preset.name,
       });
       if (index === 0) {
-        label.createSpan({ cls: "dictionary-notes-chip-note", text: "quick" });
+        label.createSpan({ cls: "fsrs-vocabulary-chip-note", text: "quick" });
       }
       label.addEventListener("click", () => {
         this.applyPreset(preset);
       });
       const menuBtn = chip.createEl("button", {
-        cls: "dictionary-notes-chip-menu",
+        cls: "fsrs-vocabulary-chip-menu",
         attr: { "aria-label": `Options for ${preset.name}` },
       });
       setIcon(menuBtn, "more-vertical");
@@ -243,11 +243,11 @@ export class ReviewOptionsModal extends Modal {
     selected: string[],
     side: "front" | "back",
   ): void {
-    const section = parent.createDiv({ cls: "dictionary-notes-options-section" });
-    section.createDiv({ cls: "dictionary-notes-options-label", text: label });
-    const row = section.createDiv({ cls: "dictionary-notes-chips" });
+    const section = parent.createDiv({ cls: "fsrs-vocabulary-options-section" });
+    section.createDiv({ cls: "fsrs-vocabulary-options-label", text: label });
+    const row = section.createDiv({ cls: "fsrs-vocabulary-chips" });
     for (const column of this.columns) {
-      const chip = row.createEl("button", { cls: "dictionary-notes-chip", text: column });
+      const chip = row.createEl("button", { cls: "fsrs-vocabulary-chip", text: column });
       if (selected.includes(column)) chip.addClass("is-active");
       chip.addEventListener("click", () => {
         this.toggleColumn(side, column);
@@ -357,7 +357,7 @@ export class ReviewOptionsModal extends Modal {
     const empty = this.columns.length > 0 && this.front.length === 0;
     if (empty) {
       parent.createDiv({
-        cls: "dictionary-notes-options-warning",
+        cls: "fsrs-vocabulary-options-warning",
         text: "Pick at least one question column.",
       });
     }
@@ -465,7 +465,7 @@ export class ReviewOptionsModal extends Modal {
         this.orderChosen = true;
       } else {
         new Notice(
-          "Could not save: this note's dictionary-notes property holds something other " +
+          "Could not save: this note's fsrs-vocabulary property holds something other " +
             "than a settings block. Clear or fix it first.",
         );
       }

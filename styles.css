@@ -1,13 +1,13 @@
-/* Dictionary Notes —styled dictionary view (reading mode). */
+/* FSRS Vocabulary —styled dictionary view (reading mode). */
 
-.dictionary-notes-dictionary {
+.fsrs-vocabulary-dictionary {
   display: flex;
   flex-direction: column;
   gap: var(--size-4-3);
 }
 
 /* Header: properties table + related links */
-.dictionary-notes-meta {
+.fsrs-vocabulary-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
@@ -16,7 +16,7 @@
   border-bottom: 1px solid var(--background-modifier-border);
 }
 
-.dictionary-notes-props {
+.fsrs-vocabulary-props {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -24,13 +24,13 @@
   font-size: var(--font-ui-small);
 }
 
-.dictionary-notes-prop {
+.fsrs-vocabulary-prop {
   display: inline-flex;
   align-items: baseline;
   gap: var(--size-4-1);
 }
 
-.dictionary-notes-prop-key {
+.fsrs-vocabulary-prop-key {
   color: var(--text-faint);
   text-transform: uppercase;
   font-size: var(--font-ui-smaller);
@@ -38,18 +38,18 @@
   white-space: nowrap;
 }
 
-.dictionary-notes-prop-value {
+.fsrs-vocabulary-prop-value {
   color: var(--text-normal);
 }
 
 /* Word cards */
-.dictionary-notes-cards {
+.fsrs-vocabulary-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: var(--size-4-2);
 }
 
-.dictionary-notes-card {
+.fsrs-vocabulary-card {
   display: flex;
   flex-direction: column;
   gap: var(--size-4-1);
@@ -59,26 +59,26 @@
   border-radius: var(--radius-m);
 }
 
-.dictionary-notes-word {
+.fsrs-vocabulary-word {
   font-size: var(--font-ui-large);
   font-weight: var(--font-bold);
   color: var(--text-normal);
   line-height: 1.2;
 }
 
-.dictionary-notes-fields {
+.fsrs-vocabulary-fields {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.dictionary-notes-field {
+.fsrs-vocabulary-field {
   display: flex;
   gap: var(--size-4-2);
   align-items: baseline;
 }
 
-.dictionary-notes-field-name {
+.fsrs-vocabulary-field-name {
   flex: 0 0 auto;
   min-width: 5em;
   font-size: var(--font-ui-smaller);
@@ -87,40 +87,40 @@
   color: var(--text-faint);
 }
 
-.dictionary-notes-field-value {
+.fsrs-vocabulary-field-value {
   color: var(--text-normal);
 }
 
 /* Inline media inside cells stays tidy. */
-.dictionary-notes-card img {
+.fsrs-vocabulary-card img {
   max-width: 100%;
   height: auto;
   border-radius: var(--radius-s);
 }
 
-.dictionary-notes-card .internal-embed audio {
+.fsrs-vocabulary-card .internal-embed audio {
   width: 100%;
 }
 
 /* Toolbar */
-.dictionary-notes-toolbar {
+.fsrs-vocabulary-toolbar {
   display: flex;
   justify-content: flex-end;
 }
 
-.dictionary-notes-review-btn {
+.fsrs-vocabulary-review-btn {
   cursor: pointer;
 }
 
 /* Review modal */
-.dictionary-notes-review-modal .dictionary-notes-review-progress {
+.fsrs-vocabulary-review-modal .fsrs-vocabulary-review-progress {
   font-size: var(--font-ui-smaller);
   color: var(--text-faint);
   text-align: center;
   margin-bottom: var(--size-4-2);
 }
 
-.dictionary-notes-review-front {
+.fsrs-vocabulary-review-front {
   font-size: 1.8em;
   font-weight: var(--font-bold);
   text-align: center;
@@ -129,7 +129,7 @@
 
 /* Sits under the question, and takes its place when the card turns over — see
    the `is-joined` rules below for the default, where both stay. */
-.dictionary-notes-review-back {
+.fsrs-vocabulary-review-back {
   display: flex;
   flex-direction: column;
   gap: var(--size-4-2);
@@ -137,45 +137,45 @@
 }
 
 /* Nothing to reveal: the question stays, so claim no space. */
-.dictionary-notes-review-back:empty {
+.fsrs-vocabulary-review-back:empty {
   padding: 0;
 }
 
 /* Joined card: question and answer share the space instead of each claiming a
    full card's worth of it, and a rule marks where the answer starts. */
-.dictionary-notes-review-modal.is-joined .dictionary-notes-review-front {
+.fsrs-vocabulary-review-modal.is-joined .fsrs-vocabulary-review-front {
   padding: var(--size-4-6) 0 var(--size-4-3);
 }
 
-.dictionary-notes-review-modal.is-joined .dictionary-notes-review-back:not(:empty) {
+.fsrs-vocabulary-review-modal.is-joined .fsrs-vocabulary-review-back:not(:empty) {
   padding: var(--size-4-3) 0 var(--size-4-4);
   border-top: 1px solid var(--background-modifier-border);
 }
 
-.dictionary-notes-review-field {
+.fsrs-vocabulary-review-field {
   text-align: center;
 }
 
-.dictionary-notes-review-field-name {
+.fsrs-vocabulary-review-field-name {
   font-size: var(--font-ui-smaller);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-faint);
 }
 
-.dictionary-notes-review-field-value {
+.fsrs-vocabulary-review-field-value {
   font-size: var(--font-ui-large);
   color: var(--text-normal);
 }
 
-.dictionary-notes-review-controls {
+.fsrs-vocabulary-review-controls {
   display: flex;
   justify-content: center;
   gap: var(--size-4-2);
   flex-wrap: wrap;
 }
 
-.dictionary-notes-rate {
+.fsrs-vocabulary-rate {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -185,27 +185,27 @@
   padding: var(--size-4-2);
 }
 
-.dictionary-notes-rate-hint {
+.fsrs-vocabulary-rate-hint {
   font-size: var(--font-ui-smaller);
   color: var(--text-faint);
 }
 
-.dictionary-notes-rate-again {
+.fsrs-vocabulary-rate-again {
   color: var(--text-error);
 }
 
-.dictionary-notes-rate-easy {
+.fsrs-vocabulary-rate-easy {
   color: var(--text-success);
 }
 
-.dictionary-notes-review-done {
+.fsrs-vocabulary-review-done {
   text-align: center;
   font-size: var(--font-ui-large);
   padding: var(--size-4-6) 0;
 }
 
 /* Stats */
-.dictionary-notes-stats {
+.fsrs-vocabulary-stats {
   display: grid;
   /* A track was allowed down to 70px while the tile inside refused to shrink
      below its content, so LEARNING spilled out of it. The floor is now wide
@@ -218,7 +218,7 @@
   gap: var(--size-4-2);
 }
 
-.dictionary-notes-stat {
+.fsrs-vocabulary-stat {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -240,12 +240,12 @@
   line-height: var(--line-height-tight);
 }
 
-.dictionary-notes-stat-value {
+.fsrs-vocabulary-stat-value {
   font-size: var(--font-ui-large);
   font-weight: var(--font-bold);
 }
 
-.dictionary-notes-stat-label {
+.fsrs-vocabulary-stat-label {
   max-width: 100%;
   font-size: var(--font-ui-smaller);
   color: var(--text-faint);
@@ -261,28 +261,28 @@
   text-overflow: ellipsis;
 }
 
-.dictionary-notes-stat.is-due .dictionary-notes-stat-value {
+.fsrs-vocabulary-stat.is-due .fsrs-vocabulary-stat-value {
   color: var(--text-accent);
 }
 
-.dictionary-notes-stats-empty {
+.fsrs-vocabulary-stats-empty {
   color: var(--text-faint);
   font-size: var(--font-ui-small);
 }
 
 /* An empty block is an ordinary state and stays quiet; a block that could not be
    read is not, and at --text-faint it would read as the same shrug. */
-.dictionary-notes-stats-empty.is-error {
+.fsrs-vocabulary-stats-empty.is-error {
   color: var(--text-error);
 }
 
 /* A tile is a button only when it starts something. */
-.dictionary-notes-stat.is-clickable {
+.fsrs-vocabulary-stat.is-clickable {
   box-shadow: none;
   cursor: pointer;
 }
 
-.dictionary-notes-stat.is-clickable:hover {
+.fsrs-vocabulary-stat.is-clickable:hover {
   border-color: var(--interactive-accent);
   background: var(--background-modifier-hover);
 }
@@ -290,42 +290,42 @@
 /* In a stats block the dictionary tiles sit above the numbers. Spelled out for both
    halves of the shelf rather than leaning on the grid's own bottom margin, so the
    gap does not depend on which kind of tile happens to come last. */
-.dictionary-notes-tile-list + .dictionary-notes-stats,
-.dictionary-notes-tiles + .dictionary-notes-stats {
+.fsrs-vocabulary-tile-list + .fsrs-vocabulary-stats,
+.fsrs-vocabulary-tiles + .fsrs-vocabulary-stats {
   margin-top: var(--size-4-3);
 }
 
 /* Hide Obsidian's status bar only while it is empty and a dictionary view is
    active — some themes paint the empty bar as a stray floating pill. The class
    is toggled on <body> from the plugin (which checks emptiness in JS). */
-body.dictionary-notes-hide-status .status-bar {
+body.fsrs-vocabulary-hide-status .status-bar {
   display: none;
 }
 
 /* Due counter in the status bar. The plugin hides the item outright at zero, so
    the rule above still sees an empty bar as empty. */
-.dictionary-notes-status {
+.fsrs-vocabulary-status {
   display: inline-flex;
   align-items: center;
   gap: var(--size-2-1);
 }
 
-.dictionary-notes-status-icon {
+.fsrs-vocabulary-status-icon {
   display: inline-flex;
 }
 
-.dictionary-notes-status-icon .svg-icon {
+.fsrs-vocabulary-status-icon .svg-icon {
   width: var(--icon-s);
   height: var(--icon-s);
 }
 
 /* Editable view header title (renames the file) */
-.dictionary-notes-header-title {
+.fsrs-vocabulary-header-title {
   cursor: text;
 }
 
 /* Interactive dictionary view */
-.dictionary-notes-view {
+.fsrs-vocabulary-view {
   padding: var(--size-4-4);
   display: flex;
   flex-direction: column;
@@ -333,17 +333,17 @@ body.dictionary-notes-hide-status .status-bar {
   overflow-y: auto;
 }
 
-.dictionary-notes-view-toolbar {
+.fsrs-vocabulary-view-toolbar {
   display: flex;
   align-items: center;
   gap: var(--size-4-2);
 }
 
-.dictionary-notes-view-toolbar-spacer {
+.fsrs-vocabulary-view-toolbar-spacer {
   flex: 1;
 }
 
-.dictionary-notes-tool {
+.fsrs-vocabulary-tool {
   display: inline-flex;
   align-items: center;
   gap: var(--size-4-1);
@@ -351,17 +351,17 @@ body.dictionary-notes-hide-status .status-bar {
 }
 
 /* A tool button with its options caret tucked into the bottom-right corner. */
-.dictionary-notes-tool-split {
+.fsrs-vocabulary-tool-split {
   position: relative;
   display: inline-flex;
 }
 
-.dictionary-notes-tool-split .dictionary-notes-tool,
-.dictionary-notes-tool-split .dictionary-notes-review-btn {
+.fsrs-vocabulary-tool-split .fsrs-vocabulary-tool,
+.fsrs-vocabulary-tool-split .fsrs-vocabulary-review-btn {
   padding-right: var(--size-4-5);
 }
 
-.dictionary-notes-tool-caret {
+.fsrs-vocabulary-tool-caret {
   position: absolute;
   right: 0;
   bottom: 0;
@@ -377,44 +377,44 @@ body.dictionary-notes-hide-status .status-bar {
   cursor: pointer;
 }
 
-.dictionary-notes-tool-caret:hover {
+.fsrs-vocabulary-tool-caret:hover {
   color: var(--text-normal);
   background: transparent;
 }
 
-.dictionary-notes-tool-caret svg {
+.fsrs-vocabulary-tool-caret svg {
   width: var(--icon-xs);
   height: var(--icon-xs);
 }
 
-.dictionary-notes-tool-icon {
+.fsrs-vocabulary-tool-icon {
   display: inline-flex;
 }
 
 /* A tool button standing for a state that is currently on (muted reminders). */
-.dictionary-notes-tool.is-active {
+.fsrs-vocabulary-tool.is-active {
   color: var(--text-muted);
 }
 
-.dictionary-notes-tool-icon svg {
+.fsrs-vocabulary-tool-icon svg {
   width: var(--icon-s);
   height: var(--icon-s);
 }
 
-.dictionary-notes-view-empty {
+.fsrs-vocabulary-view-empty {
   color: var(--text-faint);
   text-align: center;
   padding: var(--size-4-6) 0;
 }
 
-.dictionary-notes-card-editable {
+.fsrs-vocabulary-card-editable {
   position: relative;
   /* Reserve a top strip so the hover handle/delete never sit over the first
      cell's content (images, audio players, or the word itself). */
   padding-top: calc(var(--size-4-3) + var(--icon-s));
 }
 
-.dictionary-notes-card-delete {
+.fsrs-vocabulary-card-delete {
   position: absolute;
   top: var(--size-4-1);
   right: var(--size-4-1);
@@ -427,51 +427,51 @@ body.dictionary-notes-hide-status .status-bar {
   transition: opacity 0.1s ease-in-out;
 }
 
-.dictionary-notes-card-editable:hover .dictionary-notes-card-delete {
+.fsrs-vocabulary-card-editable:hover .fsrs-vocabulary-card-delete {
   opacity: 1;
 }
 
-.dictionary-notes-card-delete:hover {
+.fsrs-vocabulary-card-delete:hover {
   color: var(--text-error);
 }
 
-.dictionary-notes-card-delete svg {
+.fsrs-vocabulary-card-delete svg {
   width: var(--icon-s);
   height: var(--icon-s);
 }
 
-.dictionary-notes-editable {
+.fsrs-vocabulary-editable {
   cursor: text;
   border-radius: var(--radius-s);
 }
 
-.dictionary-notes-editable:hover {
+.fsrs-vocabulary-editable:hover {
   background: var(--background-modifier-hover);
 }
 
-.dictionary-notes-editable.is-empty {
+.fsrs-vocabulary-editable.is-empty {
   color: var(--text-faint);
 }
 
-.dictionary-notes-edit-input {
+.fsrs-vocabulary-edit-input {
   width: 100%;
   font: inherit;
   color: inherit;
 }
 
 /* Theory block (editable) */
-.dictionary-notes-view-theory {
+.fsrs-vocabulary-view-theory {
   position: relative;
 }
 
-.dictionary-notes-theory-bar {
+.fsrs-vocabulary-theory-bar {
   position: absolute;
   top: var(--size-4-1);
   right: var(--size-4-1);
   z-index: 1;
 }
 
-.dictionary-notes-theory-edit {
+.fsrs-vocabulary-theory-edit {
   padding: 2px;
   background: transparent;
   box-shadow: none;
@@ -481,34 +481,34 @@ body.dictionary-notes-hide-status .status-bar {
   transition: opacity 0.1s ease-in-out;
 }
 
-.dictionary-notes-view-theory:hover .dictionary-notes-theory-edit {
+.fsrs-vocabulary-view-theory:hover .fsrs-vocabulary-theory-edit {
   opacity: 1;
 }
 
-.dictionary-notes-theory-edit svg {
+.fsrs-vocabulary-theory-edit svg {
   width: var(--icon-s);
   height: var(--icon-s);
 }
 
-.dictionary-notes-theory-input {
+.fsrs-vocabulary-theory-input {
   width: 100%;
   font-family: var(--font-monospace);
   resize: vertical;
 }
 
-.dictionary-notes-theory-controls {
+.fsrs-vocabulary-theory-controls {
   display: flex;
   gap: var(--size-4-2);
   margin-top: var(--size-4-2);
 }
 
-.dictionary-notes-view-empty.is-inline {
+.fsrs-vocabulary-view-empty.is-inline {
   padding: var(--size-4-2);
   cursor: text;
 }
 
 /* Drag & drop reordering */
-.dictionary-notes-card-handle {
+.fsrs-vocabulary-card-handle {
   position: absolute;
   top: var(--size-4-1);
   left: var(--size-4-1);
@@ -519,71 +519,71 @@ body.dictionary-notes-hide-status .status-bar {
   transition: opacity 0.1s ease-in-out;
 }
 
-.dictionary-notes-card-editable:hover .dictionary-notes-card-handle {
+.fsrs-vocabulary-card-editable:hover .fsrs-vocabulary-card-handle {
   opacity: 1;
 }
 
-.dictionary-notes-card-handle svg {
+.fsrs-vocabulary-card-handle svg {
   width: var(--icon-s);
   height: var(--icon-s);
 }
 
-.dictionary-notes-card.is-dragging {
+.fsrs-vocabulary-card.is-dragging {
   opacity: 0.4;
 }
 
 /* Insert-position indicator while dragging */
-.dictionary-notes-card.drop-before {
+.fsrs-vocabulary-card.drop-before {
   box-shadow: inset 3px 0 0 0 var(--interactive-accent);
 }
 
-.dictionary-notes-card.drop-after {
+.fsrs-vocabulary-card.drop-after {
   box-shadow: inset -3px 0 0 0 var(--interactive-accent);
 }
 
 /* Import modal */
-.dictionary-notes-import-hint {
+.fsrs-vocabulary-import-hint {
   color: var(--text-muted);
   font-size: var(--font-ui-small);
 }
 
-.dictionary-notes-import-input {
+.fsrs-vocabulary-import-input {
   width: 100%;
   font-family: var(--font-monospace);
   resize: vertical;
 }
 
-.dictionary-notes-import-count {
+.fsrs-vocabulary-import-count {
   color: var(--text-faint);
   font-size: var(--font-ui-smaller);
   margin: var(--size-4-2) 0;
 }
 
 /* Modal validation message */
-.dictionary-notes-modal-error {
+.fsrs-vocabulary-modal-error {
   color: var(--text-error);
   font-size: var(--font-ui-small);
   margin-top: var(--size-4-2);
 }
 
 /* Review options dialog */
-.dictionary-notes-options-section {
+.fsrs-vocabulary-options-section {
   margin: var(--size-4-3) 0;
 }
 
-.dictionary-notes-options-label {
+.fsrs-vocabulary-options-label {
   color: var(--text-muted);
   font-size: var(--font-ui-smaller);
   margin-bottom: var(--size-4-1);
 }
 
-.dictionary-notes-chips {
+.fsrs-vocabulary-chips {
   display: flex;
   flex-wrap: wrap;
   gap: var(--size-4-1);
 }
 
-.dictionary-notes-chip {
+.fsrs-vocabulary-chip {
   display: inline-flex;
   align-items: center;
   gap: var(--size-4-1);
@@ -598,11 +598,11 @@ body.dictionary-notes-hide-status .status-bar {
 }
 
 /* The preset chip wraps two buttons, so it is a plain box itself. */
-.dictionary-notes-chip.is-preset {
+.fsrs-vocabulary-chip.is-preset {
   padding-right: var(--size-4-1);
 }
 
-.dictionary-notes-chip-label {
+.fsrs-vocabulary-chip-label {
   padding: 0;
   background: transparent;
   box-shadow: none;
@@ -611,22 +611,22 @@ body.dictionary-notes-hide-status .status-bar {
   cursor: pointer;
 }
 
-.dictionary-notes-chip:hover {
+.fsrs-vocabulary-chip:hover {
   border-color: var(--background-modifier-border-hover);
 }
 
-.dictionary-notes-chip.is-active {
+.fsrs-vocabulary-chip.is-active {
   border-color: var(--interactive-accent);
   color: var(--text-normal);
 }
 
-.dictionary-notes-chip-note {
+.fsrs-vocabulary-chip-note {
   color: var(--text-faint);
   font-size: var(--font-ui-smaller);
   margin-left: var(--size-4-1);
 }
 
-.dictionary-notes-chip-menu {
+.fsrs-vocabulary-chip-menu {
   display: inline-flex;
   align-items: center;
   padding: 0;
@@ -636,40 +636,40 @@ body.dictionary-notes-hide-status .status-bar {
   cursor: pointer;
 }
 
-.dictionary-notes-chip-menu:hover {
+.fsrs-vocabulary-chip-menu:hover {
   color: var(--text-normal);
 }
 
-.dictionary-notes-chip-menu svg {
+.fsrs-vocabulary-chip-menu svg {
   width: var(--icon-xs);
   height: var(--icon-xs);
 }
 
-.dictionary-notes-options-warning {
+.fsrs-vocabulary-options-warning {
   color: var(--text-error);
   font-size: var(--font-ui-small);
   margin-top: var(--size-4-2);
 }
 
 /* Dashboard */
-.dictionary-notes-dashboard {
+.fsrs-vocabulary-dashboard {
   padding: var(--size-4-4);
   overflow-y: auto;
 }
 
-.dictionary-notes-dashboard-bar {
+.fsrs-vocabulary-dashboard-bar {
   display: flex;
   gap: var(--size-4-2);
   margin: var(--size-4-4) 0;
 }
 
-.dictionary-notes-dashboard-table {
+.fsrs-vocabulary-dashboard-table {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--font-ui-small);
 }
 
-.dictionary-notes-dashboard-table th {
+.fsrs-vocabulary-dashboard-table th {
   text-align: left;
   color: var(--text-faint);
   font-size: var(--font-ui-smaller);
@@ -679,18 +679,18 @@ body.dictionary-notes-hide-status .status-bar {
   padding: var(--size-4-1) var(--size-4-2);
 }
 
-.dictionary-notes-dashboard-table td {
+.fsrs-vocabulary-dashboard-table td {
   padding: var(--size-4-1) var(--size-4-2);
   border-top: 1px solid var(--background-modifier-border);
 }
 
-.dictionary-notes-dashboard-table tr.is-muted td {
+.fsrs-vocabulary-dashboard-table tr.is-muted td {
   color: var(--text-faint);
 }
 
 /* The Iconic icon before a dictionary's name. Fixed width, so an emoji and a
    Lucide glyph leave the names starting at the same place. */
-.dictionary-notes-dashboard-icon {
+.fsrs-vocabulary-dashboard-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -700,16 +700,16 @@ body.dictionary-notes-hide-status .status-bar {
   line-height: 1;
 }
 
-.dictionary-notes-dashboard-icon .svg-icon {
+.fsrs-vocabulary-dashboard-icon .svg-icon {
   width: 1.2em;
   height: 1.2em;
 }
 
-.dictionary-notes-dashboard-link {
+.fsrs-vocabulary-dashboard-link {
   cursor: pointer;
 }
 
-.dictionary-notes-dashboard-badge {
+.fsrs-vocabulary-dashboard-badge {
   margin-left: var(--size-4-2);
   padding: 0 var(--size-4-1);
   border-radius: var(--radius-s);
@@ -718,13 +718,13 @@ body.dictionary-notes-hide-status .status-bar {
   font-size: var(--font-ui-smaller);
 }
 
-.dictionary-notes-dashboard-actions {
+.fsrs-vocabulary-dashboard-actions {
   display: flex;
   gap: var(--size-4-1);
   justify-content: flex-end;
 }
 
-.dictionary-notes-dashboard-actions button {
+.fsrs-vocabulary-dashboard-actions button {
   padding: var(--size-4-1);
   background: transparent;
   box-shadow: none;
@@ -732,16 +732,16 @@ body.dictionary-notes-hide-status .status-bar {
   cursor: pointer;
 }
 
-.dictionary-notes-dashboard-actions button:hover {
+.fsrs-vocabulary-dashboard-actions button:hover {
   color: var(--text-normal);
 }
 
 /* Dictionary shelf: icon tiles above, a one-column list of text tiles below. */
-.dictionary-notes-tiles-view {
+.fsrs-vocabulary-tiles-view {
   padding: var(--size-4-4);
 }
 
-.dictionary-notes-tiles {
+.fsrs-vocabulary-tiles {
   display: grid;
   /* `auto-fit`, not `auto-fill`: empty tracks collapse, so the tiles on the last row
      grow into the space instead of leaving a column-wide gap beside them. A stats
@@ -751,13 +751,13 @@ body.dictionary-notes-hide-status .status-bar {
   margin-bottom: var(--size-4-4);
 }
 
-.dictionary-notes-tile-list {
+.fsrs-vocabulary-tile-list {
   display: flex;
   flex-direction: column;
   gap: var(--size-4-2);
 }
 
-.dictionary-notes-tile {
+.fsrs-vocabulary-tile {
   position: relative;
   display: flex;
   align-items: center;
@@ -773,22 +773,22 @@ body.dictionary-notes-hide-status .status-bar {
 }
 
 /* An icon tile stacks; a text tile in the list reads as a row. */
-.dictionary-notes-tile:not(.is-flat) {
+.fsrs-vocabulary-tile:not(.is-flat) {
   flex-direction: column;
   text-align: center;
 }
 
-.dictionary-notes-tile:hover {
+.fsrs-vocabulary-tile:hover {
   border-color: var(--interactive-accent);
   background: var(--background-modifier-hover);
   text-decoration: none;
 }
 
-.dictionary-notes-tile.is-muted {
+.fsrs-vocabulary-tile.is-muted {
   opacity: 0.6;
 }
 
-.dictionary-notes-tile-icon {
+.fsrs-vocabulary-tile-icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -796,23 +796,23 @@ body.dictionary-notes-hide-status .status-bar {
   line-height: 1;
 }
 
-.dictionary-notes-tile-icon .svg-icon {
+.fsrs-vocabulary-tile-icon .svg-icon {
   width: 2em;
   height: 2em;
 }
 
-.dictionary-notes-tile-body {
+.fsrs-vocabulary-tile-body {
   min-width: 0;
   flex: 1;
 }
 
-.dictionary-notes-tile-name {
+.fsrs-vocabulary-tile-name {
   font-weight: var(--font-semibold);
   /* Long dictionary names must not stretch the grid track. */
   overflow-wrap: anywhere;
 }
 
-.dictionary-notes-tile-meta {
+.fsrs-vocabulary-tile-meta {
   display: flex;
   flex-wrap: wrap;
   gap: var(--size-4-1) var(--size-4-2);
@@ -820,21 +820,21 @@ body.dictionary-notes-hide-status .status-bar {
   color: var(--text-faint);
 }
 
-.dictionary-notes-tile:not(.is-flat) .dictionary-notes-tile-meta {
+.fsrs-vocabulary-tile:not(.is-flat) .fsrs-vocabulary-tile-meta {
   justify-content: center;
 }
 
-.dictionary-notes-tile-due {
+.fsrs-vocabulary-tile-due {
   color: var(--text-accent);
 }
 
-.dictionary-notes-tile-badge {
+.fsrs-vocabulary-tile-badge {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 /* Tucked into the corner so it never competes with the name for the click. */
-.dictionary-notes-tile-review {
+.fsrs-vocabulary-tile-review {
   position: absolute;
   top: var(--size-4-1);
   right: var(--size-4-1);
@@ -845,16 +845,16 @@ body.dictionary-notes-hide-status .status-bar {
   opacity: 0;
 }
 
-.dictionary-notes-tile:hover .dictionary-notes-tile-review,
-.dictionary-notes-tile-review:focus-visible {
+.fsrs-vocabulary-tile:hover .fsrs-vocabulary-tile-review,
+.fsrs-vocabulary-tile-review:focus-visible {
   opacity: 1;
 }
 
-.dictionary-notes-tile-review:hover {
+.fsrs-vocabulary-tile-review:hover {
   color: var(--text-accent);
 }
 
 /* The "install Iconic" line under a setting that cannot be switched on yet. */
-.dictionary-notes-setting-hint {
+.fsrs-vocabulary-setting-hint {
   margin-top: var(--size-2-2);
 }

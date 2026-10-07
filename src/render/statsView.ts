@@ -71,7 +71,7 @@ function statCell(
   kind: StatKind,
   onClick?: () => void,
 ): void {
-  const cls = `dictionary-notes-stat is-${kind}`;
+  const cls = `fsrs-vocabulary-stat is-${kind}`;
   // A plain div until it does something: a button that only looks clickable is
   // worse than a number. The label spells out both halves of the tile, since a
   // screen reader would otherwise read the value and the word as one run-on.
@@ -81,14 +81,14 @@ function statCell(
         attr: { "aria-label": `Review ${label.toLowerCase()} cards (${value})` },
       })
     : container.createDiv({ cls });
-  cell.createDiv({ cls: "dictionary-notes-stat-value", text: value.toString() });
-  cell.createDiv({ cls: "dictionary-notes-stat-label", text: label });
+  cell.createDiv({ cls: "fsrs-vocabulary-stat-value", text: value.toString() });
+  cell.createDiv({ cls: "fsrs-vocabulary-stat-label", text: label });
   if (onClick) cell.addEventListener("click", onClick);
 }
 
 /** Render a stats grid into `el` (does not clear `el`). */
 export function renderStatsGrid(el: HTMLElement, stats: Stats, actions: StatActions = {}): void {
-  const grid = el.createDiv({ cls: "dictionary-notes-stats" });
+  const grid = el.createDiv({ cls: "fsrs-vocabulary-stats" });
   statCell(grid, "Total", stats.total, "total", actions.total);
   statCell(grid, "Due", stats.due, "due", actions.due);
   statCell(grid, "New", stats.fresh, "new", actions.new);
@@ -106,7 +106,7 @@ export interface StatsBlockContext {
 }
 
 /**
- * Render an `dictionary-notes-stats` code block: a tile per dictionary it covers, then
+ * Render an `fsrs-vocabulary-stats` code block: a tile per dictionary it covers, then
  * the totals across them.
  *
  * A tile rather than a bare link, and one for a single dictionary too. The block is
@@ -141,13 +141,13 @@ export async function renderStats(
   el.empty();
   for (const scope of missing) {
     el.createDiv({
-      cls: "dictionary-notes-stats-empty",
+      cls: "fsrs-vocabulary-stats-empty",
       text: `No dictionary found for "${scope}".`,
     });
   }
   if (perFile.size === 0) {
     if (missing.length === 0) {
-      el.createDiv({ cls: "dictionary-notes-stats-empty", text: "No dictionary found for stats." });
+      el.createDiv({ cls: "fsrs-vocabulary-stats-empty", text: "No dictionary found for stats." });
     }
     return;
   }

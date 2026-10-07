@@ -1,11 +1,11 @@
 import { ItemView, type TAbstractFile, type WorkspaceLeaf } from "obsidian";
-import type DictionaryNotesPlugin from "../main";
+import type FsrsVocabularyPlugin from "../main";
 import { addIconicReloadAction } from "../obsidian/iconic";
 import { renderDictionaryTiles, type TileInfo } from "../render/dictionaryTile";
 import { quickReview } from "../ui/prompts";
 import { collectRows, NO_DICTIONARIES, REDRAW_DELAY } from "./dictionaryList";
 
-export const TILES_VIEW_TYPE = "dictionary-notes-tiles";
+export const TILES_VIEW_TYPE = "fsrs-vocabulary-tiles";
 
 /**
  * Dictionaries only, as tiles.
@@ -17,7 +17,7 @@ export const TILES_VIEW_TYPE = "dictionary-notes-tiles";
  * degrades to a plain list rather than a grid of identical blank squares.
  */
 export class DictionaryTilesView extends ItemView {
-  private readonly plugin: DictionaryNotesPlugin;
+  private readonly plugin: FsrsVocabularyPlugin;
   private redrawTimer: number | null = null;
   /** Bumped per render; an older pass checks it before touching the DOM again. */
   private generation = 0;
@@ -26,7 +26,7 @@ export class DictionaryTilesView extends ItemView {
   /** The "Reload icons" button, hidden while the integration is off. */
   private reloadAction: HTMLElement | null = null;
 
-  constructor(leaf: WorkspaceLeaf, plugin: DictionaryNotesPlugin) {
+  constructor(leaf: WorkspaceLeaf, plugin: FsrsVocabularyPlugin) {
     super(leaf);
     this.plugin = plugin;
     this.navigation = true;
@@ -98,12 +98,12 @@ export class DictionaryTilesView extends ItemView {
 
     const root = this.contentEl;
     root.empty();
-    root.addClass("dictionary-notes-tiles-view");
+    root.addClass("fsrs-vocabulary-tiles-view");
 
     const files = this.plugin.cache.files();
     if (files.length === 0) {
       this.shown.clear();
-      root.createDiv({ cls: "dictionary-notes-view-empty", text: NO_DICTIONARIES });
+      root.createDiv({ cls: "fsrs-vocabulary-view-empty", text: NO_DICTIONARIES });
       return;
     }
 

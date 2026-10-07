@@ -54,7 +54,7 @@ function frontmatterOf(app: App, file: TFile): Record<string, unknown> | null {
   return fm as Record<string, unknown>;
 }
 
-/** Whether a note is a dictionary — it carries the `dictionary-notes` property. */
+/** Whether a note is a dictionary — it carries the `fsrs-vocabulary` property. */
 export function isDictionaryFile(app: App, file: TFile): boolean {
   return marksDictionary(frontmatterOf(app, file));
 }
@@ -119,7 +119,7 @@ export async function updateWordsTable(
  * Returns the config as written, so a caller that flips a flag can report what
  * the flag became instead of guessing from a possibly stale metadata cache.
  *
- * Returns null without writing when the note already has an `dictionary-notes` key
+ * Returns null without writing when the note already has an `fsrs-vocabulary` key
  * holding something other than a mapping (a stray string, say): there is nowhere
  * to merge into, and overwriting it would destroy whatever the user put there.
  * Callers should tell the user rather than fail silently. An empty value is not

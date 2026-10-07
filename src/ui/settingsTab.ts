@@ -1,5 +1,5 @@
 import { PluginSettingTab, Setting, type App, type ToggleComponent } from "obsidian";
-import type DictionaryNotesPlugin from "../main";
+import type FsrsVocabularyPlugin from "../main";
 import { iconicInstalled } from "../obsidian/iconic";
 import {
   MAX_REMIND_MINUTES,
@@ -14,10 +14,10 @@ import {
 /** Where to send someone who does not have Iconic yet. */
 const ICONIC_URL = "https://github.com/gfxholo/iconic";
 
-export class DictionaryNotesSettingTab extends PluginSettingTab {
-  private readonly plugin: DictionaryNotesPlugin;
+export class FsrsVocabularySettingTab extends PluginSettingTab {
+  private readonly plugin: FsrsVocabularyPlugin;
 
-  constructor(app: App, plugin: DictionaryNotesPlugin) {
+  constructor(app: App, plugin: FsrsVocabularyPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
@@ -176,7 +176,7 @@ export class DictionaryNotesSettingTab extends PluginSettingTab {
 
     // Built now, shown only once the plugin is known to be missing — the check is
     // usually a hit, and a "not installed" line that blinks past is worse than none.
-    const hint = setting.descEl.createDiv({ cls: "dictionary-notes-setting-hint" });
+    const hint = setting.descEl.createDiv({ cls: "fsrs-vocabulary-setting-hint" });
     hint.hide();
     hint.appendText("Needs the ");
     hint.createEl("a", { href: ICONIC_URL, text: "Iconic" });

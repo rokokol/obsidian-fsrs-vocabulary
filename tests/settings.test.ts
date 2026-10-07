@@ -7,7 +7,7 @@ import {
   parseRemindMinutes,
   sanitizePropertyKeys,
   selectProperties,
-  type DictionaryNotesSettings,
+  type FsrsVocabularySettings,
 } from "../src/settings";
 
 describe("frontColumnFor", () => {
@@ -127,7 +127,7 @@ describe("migrateSettings", () => {
     expect(
       migrateSettings({
         remindEveryMinutes: "soon",
-      } as unknown as Partial<DictionaryNotesSettings>),
+      } as unknown as Partial<FsrsVocabularySettings>),
     ).toEqual({ remindEveryMinutes: 0 });
   });
 

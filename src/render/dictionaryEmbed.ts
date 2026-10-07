@@ -33,7 +33,7 @@ export function renderDictionaryEmbeds(
   for (const embed of Array.from(el.querySelectorAll<HTMLElement>(".internal-embed"))) {
     const target = embedTarget(embed);
     if (target === null || !resolve(target)) continue;
-    const container = createDiv({ cls: "dictionary-notes-embed" });
+    const container = createDiv({ cls: "fsrs-vocabulary-embed" });
     embed.replaceWith(container);
     render(target, container);
   }

@@ -16,7 +16,7 @@ export interface StatsScope {
   includeMuted: boolean | null;
 }
 
-/** What an `dictionary-notes-stats` block asks for. */
+/** What an `fsrs-vocabulary-stats` block asks for. */
 export interface StatsBlockQuery {
   /**
    * One entry per line, in the order written.
@@ -153,10 +153,10 @@ export function renderProperties(
   sourcePath: string,
 ): void {
   if (entries.length === 0) return;
-  const list = container.createDiv({ cls: "dictionary-notes-props" });
+  const list = container.createDiv({ cls: "fsrs-vocabulary-props" });
   for (const [key, value] of entries) {
-    const item = list.createDiv({ cls: "dictionary-notes-prop" });
-    item.createSpan({ cls: "dictionary-notes-prop-key", text: key });
-    appendValue(item.createSpan({ cls: "dictionary-notes-prop-value" }), value, sourcePath);
+    const item = list.createDiv({ cls: "fsrs-vocabulary-prop" });
+    item.createSpan({ cls: "fsrs-vocabulary-prop-key", text: key });
+    appendValue(item.createSpan({ cls: "fsrs-vocabulary-prop-value" }), value, sourcePath);
   }
 }

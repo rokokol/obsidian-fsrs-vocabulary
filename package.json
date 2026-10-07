@@ -1,5 +1,5 @@
 {
-  "name": "obsidian-dictionary-notes",
+  "name": "obsidian-fsrs-vocabulary",
   "version": "0.3.0",
   "description": "Turn Obsidian notes into spaced-repetition dictionaries: styled dictionary view, per-word FSRS review, stats, presets and attachments.",
   "type": "module",

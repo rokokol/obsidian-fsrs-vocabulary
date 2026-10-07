@@ -1,5 +1,5 @@
 ---
-dictionary-notes: {}
+fsrs-vocabulary: {}
 ---
 > [!info]+ A clip on the front of the card
 > Video works the same way an image does — `![[cat-slow-blink.mp4]]` plays inside

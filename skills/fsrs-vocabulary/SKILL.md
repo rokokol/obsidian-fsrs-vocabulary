@@ -1,20 +1,20 @@
 ---
-name: dictionary-notes
-description: "Create and edit dictionaries of the Dictionary Notes plugin for Obsidian — markdown notes with a words table, spaced-repetition review, presets, custom columns, audio and image attachments, and embedded statistics. Use when the user asks to create a dictionary, add or import words, add a column, attach a pronunciation or a picture, embed dictionary stats in a note, or set up review presets. Triggers: dictionary note, vocabulary, add a word, add words to my dictionary, flashcards, spaced repetition, review preset, dictionary stats, словарь, добавь слово, добавь слова в словарь, заведи словарь, карточки, интервальные повторения, статистика словаря"
+name: fsrs-vocabulary
+description: "Create and edit dictionaries of the FSRS Vocabulary plugin for Obsidian — markdown notes with a words table, spaced-repetition review, presets, custom columns, audio and image attachments, and embedded statistics. Use when the user asks to create a dictionary, add or import words, add a column, attach a pronunciation or a picture, embed dictionary stats in a note, or set up review presets. Triggers: dictionary note, vocabulary, add a word, add words to my dictionary, flashcards, spaced repetition, review preset, dictionary stats, словарь, добавь слово, добавь слова в словарь, заведи словарь, карточки, интервальные повторения, статистика словаря"
 license: MIT
 ---
 
-# Dictionary Notes
+# FSRS Vocabulary
 
 A dictionary is an ordinary markdown note. The plugin reads and writes the note itself, so you edit a dictionary through its markdown source with the ordinary file tools
 
 ## What makes a note a dictionary
 
-The `dictionary-notes` key at the root of the frontmatter. Its presence alone marks the note, whatever it holds; a new dictionary gets an empty mapping. A tag, a folder or a file name marks nothing, and a note without the key is silently not a dictionary
+The `fsrs-vocabulary` key at the root of the frontmatter. Its presence alone marks the note, whatever it holds; a new dictionary gets an empty mapping. A tag, a folder or a file name marks nothing, and a note without the key is silently not a dictionary
 
 ```markdown
 ---
-dictionary-notes: {}
+fsrs-vocabulary: {}
 ---
 Free markdown above the table is the theory section: rules, callouts, formulas, images
 
@@ -43,10 +43,10 @@ Put an embed in a cell: `![[ubiquitous.mp3]]`, `![[cat.png]]`. It resolves like 
 
 ## The config block
 
-Everything the plugin stores about a dictionary lives under its `dictionary-notes` key:
+Everything the plugin stores about a dictionary lives under its `fsrs-vocabulary` key:
 
 ```yaml
-dictionary-notes:
+fsrs-vocabulary:
   mute: true
   presets:
     - name: Reverse
@@ -64,10 +64,10 @@ The review options in the app write this block. When you edit it by hand, keep t
 
 ## Statistics in another note
 
-A code block named `dictionary-notes-stats` renders the review statistics:
+A code block named `fsrs-vocabulary-stats` renders the review statistics:
 
 `````markdown
-```dictionary-notes-stats
+```fsrs-vocabulary-stats
 vault
 ```
 `````

@@ -8,7 +8,7 @@ Everything below is live: the numbers are computed on render, and every tile sta
 
 ## Today
 
-```dictionary-notes-stats
+```fsrs-vocabulary-stats
 [[Cat breeds]]
 [[Flags]]
 [[Ear training]]
@@ -18,7 +18,7 @@ Everything below is live: the numbers are computed on render, and every tile sta
 
 ## The whole vault
 
-```dictionary-notes-stats
+```fsrs-vocabulary-stats
 vault +muted
 ```
 

@@ -74,7 +74,7 @@ function availablePath(app: App, folder: string, base: string): string {
 }
 
 /**
- * Create a new, generic dictionary note — nothing in it but the `dictionary-notes`
+ * Create a new, generic dictionary note — nothing in it but the `fsrs-vocabulary`
  * property that makes it one — with the given content columns, and return it.
  * Without a `parent` the note lands wherever Obsidian puts new notes.
  */

@@ -1,5 +1,5 @@
 import { ItemView, Keymap, setIcon, type TAbstractFile, type WorkspaceLeaf } from "obsidian";
-import type DictionaryNotesPlugin from "../main";
+import type FsrsVocabularyPlugin from "../main";
 import { countedDictionaries } from "../model/dictionaryConfig";
 import type { IconicIcon } from "../model/iconic";
 import { addIconicReloadAction } from "../obsidian/iconic";
@@ -8,7 +8,7 @@ import { renderStatsGrid, type Stats } from "../render/statsView";
 import { quickReview, reviewSlice } from "../ui/prompts";
 import { collectRows, NO_DICTIONARIES, REDRAW_DELAY, type DictionaryRow } from "./dictionaryList";
 
-export const DASHBOARD_VIEW_TYPE = "dictionary-notes-dashboard";
+export const DASHBOARD_VIEW_TYPE = "fsrs-vocabulary-dashboard";
 
 function sumStats(rows: DictionaryRow[]): Stats {
   const total: Stats = { total: 0, fresh: 0, learning: 0, review: 0, relearning: 0, due: 0 };
@@ -23,7 +23,7 @@ function sumStats(rows: DictionaryRow[]): Stats {
  * with its own numbers, a way in, and a review button.
  */
 export class DashboardView extends ItemView {
-  private readonly plugin: DictionaryNotesPlugin;
+  private readonly plugin: FsrsVocabularyPlugin;
   private redrawTimer: number | null = null;
   /**
    * Bumped by every render. A pass reads dictionaries one await at a time, so a
@@ -36,7 +36,7 @@ export class DashboardView extends ItemView {
   /** The "Reload icons" button, hidden while the integration is off. */
   private reloadAction: HTMLElement | null = null;
 
-  constructor(leaf: WorkspaceLeaf, plugin: DictionaryNotesPlugin) {
+  constructor(leaf: WorkspaceLeaf, plugin: FsrsVocabularyPlugin) {
     super(leaf);
     this.plugin = plugin;
     this.navigation = true;
@@ -47,7 +47,7 @@ export class DashboardView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "Dictionary Notes dashboard";
+    return "FSRS Vocabulary dashboard";
   }
 
   override getIcon(): string {
@@ -118,12 +118,12 @@ export class DashboardView extends ItemView {
 
     const root = this.contentEl;
     root.empty();
-    root.addClass("dictionary-notes-dashboard");
+    root.addClass("fsrs-vocabulary-dashboard");
 
     const files = this.plugin.cache.files();
     if (files.length === 0) {
       this.shown.clear();
-      root.createDiv({ cls: "dictionary-notes-view-empty", text: NO_DICTIONARIES });
+      root.createDiv({ cls: "fsrs-vocabulary-view-empty", text: NO_DICTIONARIES });
       return;
     }
 
@@ -148,7 +148,7 @@ export class DashboardView extends ItemView {
     // every dictionary a second time, with the pane blank meanwhile.
     renderStatsGrid(root, sumStats(counted), this.plugin.statActions(countedFiles));
 
-    const bar = root.createDiv({ cls: "dictionary-notes-dashboard-bar" });
+    const bar = root.createDiv({ cls: "fsrs-vocabulary-dashboard-bar" });
     const reviewAll = bar.createEl("button", { cls: "mod-cta", text: "Review everything due" });
     reviewAll.addEventListener("click", () => {
       void reviewSlice(this.app, countedFiles, this.plugin.reviewPrefs(), { pool: "due" });
@@ -166,7 +166,7 @@ export class DashboardView extends ItemView {
     // different places read as two different columns. Nothing is reserved when no
     // dictionary has an icon, so a vault without them keeps the tighter table.
     const anyIcon = rows.some((row) => icons.has(row.file.path));
-    const table = root.createEl("table", { cls: "dictionary-notes-dashboard-table" });
+    const table = root.createEl("table", { cls: "fsrs-vocabulary-dashboard-table" });
     const head = table.createEl("thead").createEl("tr");
     for (const label of ["Dictionary", "Total", "Due", "New", "Learning", "Review", ""]) {
       head.createEl("th", { text: label });
@@ -182,7 +182,7 @@ export class DashboardView extends ItemView {
         // Aria-hidden: the icon says nothing the name beside it does not, and a
         // Lucide id read aloud before every dictionary would be noise.
         const iconEl = nameCell.createSpan({
-          cls: "dictionary-notes-dashboard-icon",
+          cls: "fsrs-vocabulary-dashboard-icon",
           attr: { "aria-hidden": "true" },
         });
         const icon = icons.get(row.file.path);
@@ -191,7 +191,7 @@ export class DashboardView extends ItemView {
       // An href makes the link keyboard-reachable; navigation is ours, so the
       // default is always prevented.
       const link = nameCell.createEl("a", {
-        cls: "dictionary-notes-dashboard-link",
+        cls: "fsrs-vocabulary-dashboard-link",
         text: row.file.basename,
         href: "#",
       });
@@ -203,7 +203,7 @@ export class DashboardView extends ItemView {
       // or the two numbers just disagree.
       if (row.muted) {
         nameCell.createSpan({
-          cls: "dictionary-notes-dashboard-badge",
+          cls: "fsrs-vocabulary-dashboard-badge",
           text: "muted",
           attr: { "aria-label": "Left out of reminders and the due counter" },
         });
@@ -215,11 +215,11 @@ export class DashboardView extends ItemView {
       tr.createEl("td", { text: (row.stats.learning + row.stats.relearning).toString() });
       tr.createEl("td", { text: row.stats.review.toString() });
 
-      const actions = tr.createEl("td", { cls: "dictionary-notes-dashboard-actions" });
+      const actions = tr.createEl("td", { cls: "fsrs-vocabulary-dashboard-actions" });
       // The dictionary's own Review button, from here: its quick preset, which
       // is not necessarily the due cards — hence "quick", not "review due".
       const review = actions.createEl("button", {
-        cls: "dictionary-notes-dashboard-review",
+        cls: "fsrs-vocabulary-dashboard-review",
         attr: { "aria-label": `Quick review of ${row.file.basename}` },
       });
       setIcon(review, "play");
@@ -228,7 +228,7 @@ export class DashboardView extends ItemView {
       });
 
       const mute = actions.createEl("button", {
-        cls: "dictionary-notes-dashboard-mute",
+        cls: "fsrs-vocabulary-dashboard-mute",
         attr: {
           "aria-label": row.muted ? `Unmute ${row.file.basename}` : `Mute ${row.file.basename}`,
         },

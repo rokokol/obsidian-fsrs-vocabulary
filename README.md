@@ -1,8 +1,8 @@
-# Dictionary Notes
+# FSRS Vocabulary
 
-[![Release](https://img.shields.io/github/v/release/rokokol/obsidian-dictionary-notes?style=for-the-badge&logo=obsidian&color=7c3aed)](https://github.com/rokokol/obsidian-dictionary-notes/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/rokokol/obsidian-dictionary-notes/total?style=for-the-badge&color=22c55e)](https://github.com/rokokol/obsidian-dictionary-notes/releases)
-[![License](https://img.shields.io/github/license/rokokol/obsidian-dictionary-notes?style=for-the-badge&color=64748b)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/rokokol/obsidian-fsrs-vocabulary?style=for-the-badge&logo=obsidian&color=7c3aed)](https://github.com/rokokol/obsidian-fsrs-vocabulary/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/rokokol/obsidian-fsrs-vocabulary/total?style=for-the-badge&color=22c55e)](https://github.com/rokokol/obsidian-fsrs-vocabulary/releases)
+[![License](https://img.shields.io/github/license/rokokol/obsidian-fsrs-vocabulary?style=for-the-badge&color=64748b)](LICENSE)
 
 Turn plain Obsidian notes into spaced-repetition **dictionaries**
 
@@ -40,7 +40,7 @@ Custom fields are just extra columns. Frontmatter keys (graph links like `up`/`s
 
 ```markdown
 ---
-dictionary-notes: {}
+fsrs-vocabulary: {}
 level: B2
 ---
 
@@ -54,7 +54,7 @@ level: B2
 | ubiquitous | /juːˈbɪkwɪtəs/ | widespread  | 2026-07-10 |     |
 ```
 
-- A note is a dictionary because it carries the `dictionary-notes` property. The property is where presets and mute live; on a fresh dictionary it is simply empty
+- A note is a dictionary because it carries the `fsrs-vocabulary` property. The property is where presets and mute live; on a fresh dictionary it is simply empty
 - Everything **before** `## Words` is theory and rendered natively
 - Columns are whatever the table defines. By default the **first** content column is the card front (the question) and the rest are the answer; a [review preset](#reviewing) can split them any other way. New dictionaries start from the columns set in **New dictionary columns** in the plugin settings
 - Add/import warn about missing fields; rows added by hand in the source are cleaned up when the dictionary opens: gaps filled with the column name, empty rows dropped, and a column with neither a name nor any content removed. An `srs` cell the plugin cannot read is **not** touched — that cell is the only copy of a word's history, so the word is reviewed as new (the next grade overwrites it) and the view says which words are affected. The usual cause is an unescaped `|` further along the row, which shifts every cell after it
@@ -94,11 +94,11 @@ By default the answer joins the question on screen rather than replacing it, so 
 
 ![A card revealed, with the four FSRS grades](docs/images/review-card.png)
 
-Save a choice as a named **preset** and it lands in the note's frontmatter under the `dictionary-notes` key. The first preset is what the plain click runs — the `quick` one; any preset's menu can make it first. Nothing else in that key is touched, so anything you hand-write there survives
+Save a choice as a named **preset** and it lands in the note's frontmatter under the `fsrs-vocabulary` key. The first preset is what the plain click runs — the `quick` one; any preset's menu can make it first. Nothing else in that key is touched, so anything you hand-write there survives
 
 ```yaml
 ---
-dictionary-notes:
+fsrs-vocabulary:
   mute: false
   presets:
     - name: Reverse
@@ -121,7 +121,7 @@ Review scope (the active note or the whole vault) is a plugin setting; in vault 
 The interactive view shows a stats panel (Total / Due / New / Learning / Review) automatically. Every tile starts the session it counts: `Due` reviews what is scheduled, `Total` is practice over every word without touching the schedule, and `New`/`Learning`/`Review` draw from all cards in that FSRS state. To embed stats in **another** note, use a code block:
 
 ````markdown
-```dictionary-notes-stats
+```fsrs-vocabulary-stats
 vault
 ```
 ````
@@ -133,7 +133,7 @@ vault
 One scope per line, so a block can cover any set of dictionaries — and a `+muted` / `-muted` written after a scope belongs to that line, while one on a line of its own sets the block's default:
 
 ````markdown
-```dictionary-notes-stats
+```fsrs-vocabulary-stats
 [[Cat breeds]]
 [[Flags]]
 [[Ear training]]
@@ -184,7 +184,7 @@ A single dictionary can be **muted** — from its toolbar, its file menu or the 
 The repository ships an [Agent Skill](https://agentskills.io) that teaches a coding agent to create dictionaries and add words without breaking the format. Install it into the vault for any agent that reads Agent Skills:
 
 ```bash
-npx skills add rokokol/obsidian-dictionary-notes
+npx skills add rokokol/obsidian-fsrs-vocabulary
 ```
 
 ## Development
