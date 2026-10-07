@@ -46,6 +46,8 @@ export const SORT_LABELS: Record<SortMode, string> = {
   shuffled: "Random",
 };
 
+const SORT_MODES = Object.keys(SORT_LABELS) as SortMode[];
+
 /** What the last fit of the weights found, for the settings tab and the next fit. */
 export interface FitRecord {
   /** When it ran, in epoch milliseconds. */
@@ -131,21 +133,9 @@ export function clampRemindMinutes(value: unknown): number {
   return Math.min(Math.round(value), MAX_REMIND_MINUTES);
 }
 
-/**
- * Read a user-typed reminder interval. A cleared field is a deliberate zero, but
- * text that is not a number at all keeps the current value: retyping an interval
- * and fumbling it should not silently switch the reminder off. The input must be
- * a plain text field for this to be reachable — `type="number"` reports
- * unparseable content as the empty string, which is indistinguishable from
- * clearing it on purpose.
- */
-export function parseRemindMinutes(input: string, current: number): number {
-  const text = input.trim();
-  if (text === "") return 0;
-  const value = Number(text);
-  if (!Number.isFinite(value) || value < 0) return current;
-  return clampRemindMinutes(value);
-}
+/** The range of the target retention slider. */
+export const RETENTION_MIN = 0.7;
+export const RETENTION_MAX = 0.97;
 
 export const DEFAULT_SETTINGS: FsrsVocabularySettings = {
   newDictionaryColumns: [...DEFAULT_COLUMNS],
@@ -222,4 +212,133 @@ export function selectProperties(
     if (byKey.has(key)) out.push([key, byKey.get(key)]);
   }
   return out;
+}
+
+/** What the plugin must redo after a setting changed, besides saving it. */
+export type ControlEffect = "rendered" | "reminders" | "iconic";
+
+/** One field of the settings tab: how it reads its setting, and how it stores a value. */
+interface Control {
+  read: (settings: FsrsVocabularySettings) => string | number | boolean;
+  /** Stores the value and says so, or returns false and changes nothing. */
+  write: (settings: FsrsVocabularySettings, value: unknown) => boolean;
+  effects: ControlEffect[];
+}
+
+type Flag =
+  | "keepQuestionOnReveal"
+  | "statsIncludeMuted"
+  | "iconicIntegration"
+  | "remindersEnabled"
+  | "remindOnStartup"
+  | "statusBarCounter";
+
+function flagControl(key: Flag, effects: ControlEffect[] = []): Control {
+  return {
+    read: (settings) => settings[key],
+    write: (settings, value) => {
+      if (typeof value !== "boolean") return false;
+      settings[key] = value;
+      return true;
+    },
+    effects,
+  };
+}
+
+function choiceControl<K extends "defaultView" | "defaultSort" | "reviewScope">(
+  key: K,
+  allowed: readonly FsrsVocabularySettings[K][],
+): Control {
+  return {
+    read: (settings) => settings[key],
+    write: (settings, value) => {
+      const choice = allowed.find((option) => option === value);
+      if (choice === undefined) return false;
+      settings[key] = choice;
+      return true;
+    },
+    effects: [],
+  };
+}
+
+const CONTROLS = {
+  newDictionaryColumns: {
+    read: (settings) => settings.newDictionaryColumns.join(", "),
+    write: (settings, value) => {
+      if (typeof value !== "string") return false;
+      const columns = sanitizeColumns(value);
+      if (columns.length === 0) return false;
+      settings.newDictionaryColumns = columns;
+      return true;
+    },
+    effects: [],
+  },
+  defaultView: choiceControl("defaultView", ["dictionary", "markdown"]),
+  defaultSort: choiceControl("defaultSort", SORT_MODES),
+  fsrsRetention: {
+    read: (settings) => settings.fsrsRetention,
+    write: (settings, value) => {
+      if (typeof value !== "number" || !Number.isFinite(value)) return false;
+      const clamped = Math.min(Math.max(value, RETENTION_MIN), RETENTION_MAX);
+      settings.fsrsRetention = Math.round(clamped * 100) / 100;
+      return true;
+    },
+    effects: [],
+  },
+  properties: {
+    read: (settings) => settings.properties.join(", "),
+    write: (settings, value) => {
+      if (typeof value !== "string") return false;
+      settings.properties = sanitizePropertyKeys(value);
+      return true;
+    },
+    effects: ["rendered"],
+  },
+  keepQuestionOnReveal: flagControl("keepQuestionOnReveal"),
+  statsIncludeMuted: flagControl("statsIncludeMuted", ["rendered"]),
+  reviewScope: choiceControl("reviewScope", ["note", "vault"]),
+  iconicIntegration: flagControl("iconicIntegration", ["iconic"]),
+  remindersEnabled: flagControl("remindersEnabled", ["reminders"]),
+  remindOnStartup: flagControl("remindOnStartup"),
+  remindEveryMinutes: {
+    read: (settings) => settings.remindEveryMinutes,
+    write: (settings, value) => {
+      if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return false;
+      settings.remindEveryMinutes = clampRemindMinutes(value);
+      return true;
+    },
+    effects: ["reminders"],
+  },
+  statusBarCounter: flagControl("statusBarCounter", ["reminders"]),
+} satisfies Record<string, Control>;
+
+/** The settings that have a field in the tab; the tab names its fields by these keys. */
+export type ControlKey = keyof typeof CONTROLS;
+
+function isControlKey(key: string): key is ControlKey {
+  return Object.hasOwn(CONTROLS, key);
+}
+
+/** What the field for `key` shows, or undefined when no field has that key. */
+export function readControl(
+  settings: FsrsVocabularySettings,
+  key: string,
+): string | number | boolean | undefined {
+  return isControlKey(key) ? CONTROLS[key].read(settings) : undefined;
+}
+
+/**
+ * Store what the user did to the field for `key`. Returns what to redo afterwards,
+ * or null when the value was refused and nothing changed. The fields fire on every
+ * keystroke, so a half-typed list arrives here too; what cannot be a setting yet is
+ * refused rather than guessed at.
+ */
+export function writeControl(
+  settings: FsrsVocabularySettings,
+  key: string,
+  value: unknown,
+): ControlEffect[] | null {
+  if (!isControlKey(key)) return null;
+  const control: Control = CONTROLS[key];
+  return control.write(settings, value) ? control.effects : null;
 }

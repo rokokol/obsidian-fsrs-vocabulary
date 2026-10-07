@@ -2,7 +2,7 @@
   "id": "fsrs-vocabulary",
   "name": "FSRS Vocabulary",
   "version": "0.3.0",
-  "minAppVersion": "1.8.7",
+  "minAppVersion": "1.13.0",
   "description": "Turn notes into spaced-repetition dictionaries: styled dictionary view, per-word FSRS review, stats, presets and audio/image attachments.",
   "author": "rokokol",
   "authorUrl": "https://github.com/rokokol",

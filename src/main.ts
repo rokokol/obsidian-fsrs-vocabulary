@@ -576,7 +576,7 @@ export default class FsrsVocabularyPlugin extends Plugin {
    *
    * No clamping here: `remindEveryMinutes` is a finite integer in range by the
    * time it lands in the settings — `migrateSettings` clamps whatever was stored
-   * and `parseRemindMinutes` clamps whatever was typed. Keep it that way; a
+   * and `writeControl` clamps whatever was typed. Keep it that way; a
    * negative period would be clamped to no delay at all by the browser and fire a
    * notice on every tick.
    */

@@ -168,7 +168,7 @@ The dashboard ribbon icon (or the **Open dictionary dashboard** command) opens a
 
 ![The shelf of dictionary tiles](docs/images/shelf.png)
 
-The **Integrations** section of the settings has **Icons from Iconic**, off until you turn it on. Enabled, a dictionary you gave an icon to in [Iconic](https://github.com/gfxholo/iconic) gets a picture tile at the top and the rest fall into a single-column list of text tiles below, so the shelf follows a choice you already made instead of asking for it again; disabled, it is simply that list. The dashboard shows the same icons beside the names in its table, so the two views agree on what a dictionary looks like. Without Iconic installed the switch is shown but greyed out — there would be no icons to read. Iconic keeps them in `.obsidian`, which is inside the vault but raises no vault events, so both views have a **Reload icons** action in their header for after you set one
+The **Integrations** section of the settings has **Iconic icons**, off until you turn it on. Enabled, a dictionary you gave an icon to in [Iconic](https://github.com/gfxholo/iconic) gets a picture tile at the top and the rest fall into a single-column list of text tiles below, so the shelf follows a choice you already made instead of asking for it again; disabled, it is simply that list. The dashboard shows the same icons beside the names in its table, so the two views agree on what a dictionary looks like. Without Iconic installed the switch is shown but greyed out — there would be no icons to read. Iconic keeps them in `.obsidian`, which is inside the vault but raises no vault events, so both views have a **Reload icons** action in their header for after you set one
 
 ## Reminders
 

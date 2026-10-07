@@ -2,11 +2,15 @@ import { describe, expect, it } from "vitest";
 import {
   clampRemindMinutes,
   frontColumnFor,
+  DEFAULT_SETTINGS,
   MAX_REMIND_MINUTES,
   migrateSettings,
-  parseRemindMinutes,
+  readControl,
+  RETENTION_MAX,
+  RETENTION_MIN,
   sanitizePropertyKeys,
   selectProperties,
+  writeControl,
   type FsrsVocabularySettings,
 } from "../src/settings";
 
@@ -70,32 +74,128 @@ describe("selectProperties", () => {
   });
 });
 
-describe("parseRemindMinutes", () => {
-  it("reads a plain number of minutes", () => {
-    expect(parseRemindMinutes("45", 0)).toBe(45);
+/** A settings object to change, so one test never sees another's writes. */
+const fresh = (): FsrsVocabularySettings => ({
+  ...DEFAULT_SETTINGS,
+  newDictionaryColumns: [...DEFAULT_SETTINGS.newDictionaryColumns],
+  properties: [...DEFAULT_SETTINGS.properties],
+});
+
+describe("readControl", () => {
+  it("shows a list setting as the text the field holds", () => {
+    const settings = { ...fresh(), newDictionaryColumns: ["word", "meaning"], properties: ["up"] };
+    expect(readControl(settings, "newDictionaryColumns")).toBe("word, meaning");
+    expect(readControl(settings, "properties")).toBe("up");
   });
 
-  it("reads a cleared field as start-up only", () => {
-    expect(parseRemindMinutes("", 45)).toBe(0);
-    expect(parseRemindMinutes("   ", 45)).toBe(0);
+  it("shows a plain setting as it is", () => {
+    const settings = { ...fresh(), defaultSort: "due-asc" as const, remindEveryMinutes: 30 };
+    expect(readControl(settings, "defaultSort")).toBe("due-asc");
+    expect(readControl(settings, "remindEveryMinutes")).toBe(30);
+    expect(readControl(settings, "remindersEnabled")).toBe(true);
   });
 
-  it("keeps the current value when the text is not a number", () => {
-    expect(parseRemindMinutes("soon", 45)).toBe(45);
-    expect(parseRemindMinutes("-5", 45)).toBe(45);
+  it("knows nothing of a key that is not a control", () => {
+    // `fsrsWeights` is stored but has no field of its own: the tab must not echo it
+    expect(readControl(fresh(), "fsrsWeights")).toBeUndefined();
+    expect(readControl(fresh(), "nonsense")).toBeUndefined();
+  });
+});
+
+describe("writeControl", () => {
+  it("stores a toggle and reports what must be redone", () => {
+    const settings = fresh();
+    expect(writeControl(settings, "statsIncludeMuted", true)).toEqual(["rendered"]);
+    expect(settings.statsIncludeMuted).toBe(true);
+    expect(writeControl(settings, "remindersEnabled", false)).toEqual(["reminders"]);
+    expect(settings.remindersEnabled).toBe(false);
+    expect(writeControl(settings, "statusBarCounter", false)).toEqual(["reminders"]);
+    expect(writeControl(settings, "iconicIntegration", true)).toEqual(["iconic"]);
+    expect(writeControl(settings, "keepQuestionOnReveal", false)).toEqual([]);
+    expect(writeControl(settings, "remindOnStartup", false)).toEqual([]);
   });
 
-  it("rounds fractions to whole minutes", () => {
-    expect(parseRemindMinutes("12.6", 0)).toBe(13);
+  it("refuses a value of the wrong kind and leaves the setting alone", () => {
+    const settings = fresh();
+    expect(writeControl(settings, "remindersEnabled", "yes")).toBeNull();
+    expect(writeControl(settings, "remindEveryMinutes", "30")).toBeNull();
+    expect(writeControl(settings, "newDictionaryColumns", 3)).toBeNull();
+    expect(settings).toEqual(fresh());
   });
 
-  it("caps the interval at a week", () => {
-    expect(parseRemindMinutes("999999", 0)).toBe(MAX_REMIND_MINUTES);
+  it("refuses a key that is not a control", () => {
+    const settings = fresh();
+    expect(writeControl(settings, "fsrsWeights", [1, 2, 3])).toBeNull();
+    expect(writeControl(settings, "nonsense", true)).toBeNull();
+    expect(settings).toEqual(fresh());
   });
 
-  it("rounds a sub-minute interval to the nearest whole minute", () => {
-    expect(parseRemindMinutes("0.4", 30)).toBe(0);
-    expect(parseRemindMinutes("0.6", 30)).toBe(1);
+  it("stores typed columns cleaned, and keeps the old ones when nothing usable is left", () => {
+    const settings = fresh();
+    expect(writeControl(settings, "newDictionaryColumns", "word,  meaning\nword, due, ")).toEqual(
+      [],
+    );
+    // `due` is a column the plugin manages itself, so it cannot be a content column
+    expect(settings.newDictionaryColumns).toEqual(["word", "meaning"]);
+    expect(writeControl(settings, "newDictionaryColumns", " , due")).toBeNull();
+    expect(settings.newDictionaryColumns).toEqual(["word", "meaning"]);
+  });
+
+  it("stores typed properties cleaned, and lets the list be emptied", () => {
+    const settings = fresh();
+    expect(writeControl(settings, "properties", "up, source\nup")).toEqual(["rendered"]);
+    expect(settings.properties).toEqual(["up", "source"]);
+    // An empty list is a real choice here: it shows every property
+    expect(writeControl(settings, "properties", "")).toEqual(["rendered"]);
+    expect(settings.properties).toEqual([]);
+  });
+
+  it("accepts only the views, orders and scopes there are", () => {
+    const settings = fresh();
+    expect(writeControl(settings, "defaultView", "markdown")).toEqual([]);
+    expect(settings.defaultView).toBe("markdown");
+    expect(writeControl(settings, "defaultView", "sideways")).toBeNull();
+    expect(settings.defaultView).toBe("markdown");
+
+    expect(writeControl(settings, "defaultSort", "shuffled")).toEqual([]);
+    expect(writeControl(settings, "defaultSort", "newest")).toBeNull();
+    expect(settings.defaultSort).toBe("shuffled");
+
+    expect(writeControl(settings, "reviewScope", "vault")).toEqual([]);
+    expect(writeControl(settings, "reviewScope", "galaxy")).toBeNull();
+    expect(settings.reviewScope).toBe("vault");
+  });
+
+  it("keeps the target retention inside the slider's range, in hundredths", () => {
+    const settings = fresh();
+    writeControl(settings, "fsrsRetention", 0.8500000000000001);
+    expect(settings.fsrsRetention).toBe(0.85);
+    writeControl(settings, "fsrsRetention", 0.2);
+    expect(settings.fsrsRetention).toBe(RETENTION_MIN);
+    writeControl(settings, "fsrsRetention", 1);
+    expect(settings.fsrsRetention).toBe(RETENTION_MAX);
+    expect(writeControl(settings, "fsrsRetention", Number.NaN)).toBeNull();
+    expect(settings.fsrsRetention).toBe(RETENTION_MAX);
+  });
+
+  it("makes the reminder interval a whole number of minutes no longer than a week", () => {
+    const settings = fresh();
+    expect(writeControl(settings, "remindEveryMinutes", 45)).toEqual(["reminders"]);
+    expect(settings.remindEveryMinutes).toBe(45);
+    writeControl(settings, "remindEveryMinutes", 12.6);
+    expect(settings.remindEveryMinutes).toBe(13);
+    writeControl(settings, "remindEveryMinutes", 999999);
+    expect(settings.remindEveryMinutes).toBe(MAX_REMIND_MINUTES);
+    writeControl(settings, "remindEveryMinutes", 0);
+    expect(settings.remindEveryMinutes).toBe(0);
+  });
+
+  it("never lets a negative or unreadable interval reach the timer", () => {
+    const settings = { ...fresh(), remindEveryMinutes: 45 };
+    expect(writeControl(settings, "remindEveryMinutes", -5)).toBeNull();
+    expect(writeControl(settings, "remindEveryMinutes", Number.NaN)).toBeNull();
+    expect(writeControl(settings, "remindEveryMinutes", Infinity)).toBeNull();
+    expect(settings.remindEveryMinutes).toBe(45);
   });
 });
 
