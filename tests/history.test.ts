@@ -9,7 +9,12 @@ import {
 } from "../src/model/history";
 import { ReviewHistory, type HistoryAdapter } from "../src/obsidian/history";
 
-const entry = (c: string, t: number, r: ReviewLogEntry["r"] = 3, s = State.Review): ReviewLogEntry => ({
+const entry = (
+  c: string,
+  t: number,
+  r: ReviewLogEntry["r"] = 3,
+  s = State.Review,
+): ReviewLogEntry => ({
   c,
   t,
   r,
@@ -66,7 +71,9 @@ function memoryAdapter(files: Record<string, string> = {}): HistoryAdapter & {
     files: store,
     // A folder exists while it holds a file.
     exists: (path) =>
-      Promise.resolve(path in store || Object.keys(store).some((key) => key.startsWith(`${path}/`))),
+      Promise.resolve(
+        path in store || Object.keys(store).some((key) => key.startsWith(`${path}/`)),
+      ),
     read: (path) => {
       const text = store[path];
       return text === undefined ? Promise.reject(new Error(`no ${path}`)) : Promise.resolve(text);
@@ -91,7 +98,9 @@ describe("ReviewHistory", () => {
   const DIR = "config/plugins/fsrs-vocabulary";
 
   it("appends to this device's file only", async () => {
-    const adapter = memoryAdapter({ [`${DIR}/history-mobile-p9.jsonl`]: formatEntry(entry("z", 1)) });
+    const adapter = memoryAdapter({
+      [`${DIR}/history-mobile-p9.jsonl`]: formatEntry(entry("z", 1)),
+    });
     const history = new ReviewHistory(adapter, DIR, "desktop", "d1");
     await history.append(entry("a1", 1000));
     await history.append(entry("a1", 2000));
@@ -106,9 +115,9 @@ describe("ReviewHistory", () => {
     const adapter = memoryAdapter();
     const history = new ReviewHistory(adapter, DIR, "desktop", "d1");
     await Promise.all([1, 2, 3, 4].map((t) => history.append(entry("a1", t))));
-    expect(parseHistory(adapter.files[`${DIR}/history-desktop-d1.jsonl`] ?? "").map((e) => e.t)).toEqual(
-      [1, 2, 3, 4],
-    );
+    expect(
+      parseHistory(adapter.files[`${DIR}/history-desktop-d1.jsonl`] ?? "").map((e) => e.t),
+    ).toEqual([1, 2, 3, 4]);
   });
 
   it("reads every device's file, in time order, without duplicates", async () => {

@@ -93,7 +93,8 @@ export function loadEngine(wasm: Uint8Array): FsrsEngine {
         }
         return states.map((state: unknown) => {
           const stability = (state as { stability?: unknown } | null)?.stability;
-          if (typeof stability !== "number") throw new Error("fsrs-browser memory state has no stability");
+          if (typeof stability !== "number")
+            throw new Error("fsrs-browser memory state has no stability");
           return stability;
         });
       } finally {

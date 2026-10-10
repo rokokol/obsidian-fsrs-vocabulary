@@ -253,7 +253,13 @@ describe("migrateSettings", () => {
   });
 
   it("keeps the record of the last fit", () => {
-    const fsrsFit = { at: 1000, items: 420, status: "adopted", lossBefore: 0.4, lossAfter: 0.3 } as const;
+    const fsrsFit = {
+      at: 1000,
+      items: 420,
+      status: "adopted",
+      lossBefore: 0.4,
+      lossAfter: 0.3,
+    } as const;
     expect(migrateSettings({ fsrsFit })).toEqual({ fsrsFit });
   });
 

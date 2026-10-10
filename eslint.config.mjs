@@ -51,10 +51,7 @@ export default tseslint.config(
       ],
       "no-console": ["warn", { allow: ["warn", "error"] }],
       "@typescript-eslint/no-explicit-any": "error",
-      "@typescript-eslint/explicit-function-return-type": [
-        "warn",
-        { allowExpressions: true },
-      ],
+      "@typescript-eslint/explicit-function-return-type": ["warn", { allowExpressions: true }],
       "@typescript-eslint/consistent-type-imports": [
         "warn",
         { prefer: "type-imports", fixStyle: "inline-type-imports" },

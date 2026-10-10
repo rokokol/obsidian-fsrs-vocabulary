@@ -73,7 +73,9 @@ describe("srs encode/decode", () => {
   it("has no card id in a blank, malformed or pre-id cell", () => {
     expect(cardIdFromCell("")).toBeNull();
     expect(cardIdFromCell("not json")).toBeNull();
-    expect(cardIdFromCell('{"s":0,"r":0,"l":0,"S":0,"D":0,"c":0,"d":"2026-07-07T00:00:00Z"}')).toBeNull();
+    expect(
+      cardIdFromCell('{"s":0,"r":0,"l":0,"S":0,"D":0,"c":0,"d":"2026-07-07T00:00:00Z"}'),
+    ).toBeNull();
     expect(cardIdFromCell('{"i":42}')).toBeNull();
     expect(cardIdFromCell('{"i":"has space"}')).toBeNull();
   });
@@ -195,7 +197,12 @@ describe("rescheduleCard", () => {
     expect(moved?.stability).toBeCloseTo(memory.stability, 3);
     expect(moved?.difficulty).toBeCloseTo(memory.difficulty, 3);
     expect(moved?.scheduled_days).toBeGreaterThan(card.scheduled_days);
-    expect(rescheduleCard(card, at(0.9), now, { stability: card.stability, difficulty: card.difficulty })).toBeNull();
+    expect(
+      rescheduleCard(card, at(0.9), now, {
+        stability: card.stability,
+        difficulty: card.difficulty,
+      }),
+    ).toBeNull();
   });
 
   it("stores a recomputed memory even when the date stays", () => {

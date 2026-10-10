@@ -6,7 +6,13 @@ import { buildItems } from "../src/optimizer/items";
 const DAY = 24 * 60 * 60 * 1000;
 const T0 = Date.UTC(2026, 9, 1, 10, 0);
 
-const log = (c: string, day: number, r: ReviewLogEntry["r"], s: State, hour = 0): ReviewLogEntry => ({
+const log = (
+  c: string,
+  day: number,
+  r: ReviewLogEntry["r"],
+  s: State,
+  hour = 0,
+): ReviewLogEntry => ({
   c,
   t: T0 + day * DAY + hour * 60 * 60 * 1000,
   r,

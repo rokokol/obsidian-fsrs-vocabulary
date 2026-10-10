@@ -58,7 +58,9 @@ export class ReviewHistory {
   async readAll(): Promise<HistoryRead> {
     if (!(await this.adapter.exists(this.dir))) return { entries: [], files: 0 };
     const listed = await this.adapter.list(this.dir);
-    const paths = listed.files.filter((path) => isHistoryFile(path.slice(path.lastIndexOf("/") + 1)));
+    const paths = listed.files.filter((path) =>
+      isHistoryFile(path.slice(path.lastIndexOf("/") + 1)),
+    );
     const seen = new Set<string>();
     const entries: ReviewLogEntry[] = [];
     let files = 0;

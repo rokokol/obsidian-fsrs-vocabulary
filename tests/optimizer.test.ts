@@ -39,7 +39,12 @@ const START = Date.UTC(2026, 0, 1, 9);
  * plugin schedules before any fit: with the default weights. Recall at each review is
  * drawn from what `truth` predicts for that card at that moment.
  */
-function simulate(truth: readonly number[], seed: number, cards = 300, days = 240): ReviewLogEntry[] {
+function simulate(
+  truth: readonly number[],
+  seed: number,
+  cards = 300,
+  days = 240,
+): ReviewLogEntry[] {
   const rnd = random(seed);
   const model = fsrs(generatorParameters({ w: [...truth] }));
   const entries: ReviewLogEntry[] = [];
@@ -52,10 +57,20 @@ function simulate(truth: readonly number[], seed: number, cards = 300, days = 24
     while (now.getTime() < end) {
       const elapsed = last ? dateDiffInDays(last, now) : 0;
       const recall =
-        memory === null ? 0.7 : elapsed === 0 ? 0.95 : forgetting_curve([...truth], elapsed, memory.stability);
+        memory === null
+          ? 0.7
+          : elapsed === 0
+            ? 0.95
+            : forgetting_curve([...truth], elapsed, memory.stability);
       const remembered = rnd() < recall;
       const roll = rnd();
-      const rating: ReviewRating = !remembered ? "again" : roll < 0.1 ? "hard" : roll < 0.9 ? "good" : "easy";
+      const rating: ReviewRating = !remembered
+        ? "again"
+        : roll < 0.1
+          ? "hard"
+          : roll < 0.9
+            ? "good"
+            : "easy";
       entries.push({ c: `c${c.toString()}`, t: now.getTime(), r: gradeOf(rating), s: card.state });
       memory = model.next_state(memory, elapsed, gradeOf(rating));
       card = review(card, rating, { retention: 0.9, weights: null }, now);
@@ -179,9 +194,9 @@ describe("fitWeights decides", () => {
     // Both fits would beat the defaults; neither beats the weights in use.
     const engine = fakeEngine([withFirst(50), withFirst(50)]);
     expect(fitWeights(engine, remembered(100), withFirst(80), 10).status).toBe("kept");
-    expect(fitWeights(fakeEngine([withFirst(50), withFirst(50)]), remembered(100), null, 10).status).toBe(
-      "adopted",
-    );
+    expect(
+      fitWeights(fakeEngine([withFirst(50), withFirst(50)]), remembered(100), null, 10).status,
+    ).toBe("adopted");
   });
 
   it("keeps the weights in use when the full fit does worse than them", () => {
@@ -192,10 +207,15 @@ describe("fitWeights decides", () => {
   it("adopts weights in the form the scheduler runs them", () => {
     // Remembering nothing makes the shortest first stability the best fit, and the
     // scheduler will not start a card below its floor.
-    const forgotten = remembered(100).map((entry) => (entry.s === State.Review ? { ...entry, r: 1 as const } : entry));
+    const forgotten = remembered(100).map((entry) =>
+      entry.s === State.Review ? { ...entry, r: 1 as const } : entry,
+    );
     const engine = fakeEngine([withFirst(0.01), withFirst(0.01)]);
     const outcome = fitWeights(engine, forgotten, null, 10);
-    expect(outcome).toMatchObject({ status: "adopted", weights: alignWithScheduler(withFirst(0.01)) });
+    expect(outcome).toMatchObject({
+      status: "adopted",
+      weights: alignWithScheduler(withFirst(0.01)),
+    });
     expect(outcome.status === "adopted" && outcome.weights?.[0]).toBeGreaterThanOrEqual(0.1);
   });
 

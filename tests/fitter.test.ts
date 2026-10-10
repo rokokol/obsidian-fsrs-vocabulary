@@ -93,7 +93,13 @@ describe("WeightFitter", () => {
   });
 
   it("records a kept fit without touching the weights in use", async () => {
-    const h = harness((items) => ({ status: "kept", items, lossBefore: 0.4, lossAfter: 0.5, weights: null }));
+    const h = harness((items) => ({
+      status: "kept",
+      items,
+      lossBefore: 0.4,
+      lossAfter: 0.5,
+      weights: null,
+    }));
     h.state.weights = [...NEW_WEIGHTS];
     h.setHistory(history(400));
     await h.fitter.fitIfDue();
@@ -154,7 +160,13 @@ describe("WeightFitter", () => {
   });
 
   it("reports nothing when the fit kept the weights in use", async () => {
-    const h = harness((items) => ({ status: "kept", items, lossBefore: 0.4, lossAfter: 0.5, weights: null }));
+    const h = harness((items) => ({
+      status: "kept",
+      items,
+      lossBefore: 0.4,
+      lossAfter: 0.5,
+      weights: null,
+    }));
     h.setHistory(history(400));
     await h.fitter.fitNow();
     await h.fitter.fitNow();

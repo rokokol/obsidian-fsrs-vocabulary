@@ -9,7 +9,10 @@ const T0 = Date.UTC(2026, 0, 1, 9);
 const at = { retention: 0.9, weights: null };
 
 /** Grade a card through the plugin's own scheduler, logging each grade as the modal does. */
-function graded(ratings: [number, ReviewRating][], id = "a1"): { card: Card; log: ReviewLogEntry[] } {
+function graded(
+  ratings: [number, ReviewRating][],
+  id = "a1",
+): { card: Card; log: ReviewLogEntry[] } {
   let card = newCard(new Date(T0));
   const log: ReviewLogEntry[] = [];
   for (const [day, rating] of ratings) {
@@ -65,7 +68,13 @@ describe("memoryFromLog", () => {
 
 describe("replayIndex", () => {
   it("groups the log by card, in time order", () => {
-    const a = graded([[0, "good"], [2, "good"]], "a1").log;
+    const a = graded(
+      [
+        [0, "good"],
+        [2, "good"],
+      ],
+      "a1",
+    ).log;
     const b = graded([[1, "easy"]], "b2").log;
     const index = replayIndex([...b, ...a].reverse());
     expect(index.get("a1")).toEqual(a);
@@ -76,8 +85,13 @@ describe("replayIndex", () => {
 
 describe("a card graded before logging began", () => {
   it("is left to its stored memory", () => {
-    const { card } = graded([[0, "good"], [1, "good"]]);
-    const late: ReviewLogEntry[] = [{ c: "a1", t: card.last_review?.getTime() ?? 0, r: 3, s: State.Review }];
+    const { card } = graded([
+      [0, "good"],
+      [1, "good"],
+    ]);
+    const late: ReviewLogEntry[] = [
+      { c: "a1", t: card.last_review?.getTime() ?? 0, r: 3, s: State.Review },
+    ];
     expect(memoryFromLog(late, card, null)).toBeNull();
   });
 });
