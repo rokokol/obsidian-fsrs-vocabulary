@@ -1,0 +1,3 @@
+# Vendored from rokokol/obsidian-media-gallery and kept byte-equal to it by vendor-sync.sh;
+# reformatting the copy here would make vendor-sync check fail
+check-since.mjs
