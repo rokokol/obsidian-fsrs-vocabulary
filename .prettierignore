@@ -1,3 +1,4 @@
-# Vendored from rokokol/obsidian-media-gallery and kept byte-equal to it by vendor-sync.sh;
-# reformatting the copy here would make vendor-sync check fail
-check-since.mjs
+# Content, not code: the demo vault and the skill description stay out of prettier,
+# as README.md does on the source side in obsidian-media-gallery
+docs/FSRS Vocabulary demo/
+skills/fsrs-vocabulary/SKILL.md
