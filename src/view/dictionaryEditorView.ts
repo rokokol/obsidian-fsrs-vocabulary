@@ -5,6 +5,7 @@ import {
   MarkdownRenderer,
   Menu,
   Notice,
+  SearchComponent,
   setIcon,
   TFile,
   type ViewStateResult,
@@ -22,6 +23,7 @@ import {
   type NormalizeSummary,
 } from "../model/dictionary";
 import { toFrontmatterValue } from "../model/dictionaryConfig";
+import { wordMatcher } from "../model/search";
 import type { MarkdownTable } from "../model/table";
 import { isBlankCell, sanitizeCell } from "../model/word";
 import {
@@ -67,6 +69,8 @@ interface CardEntry {
 /** The view's fixed sections, created once so a repaint can target just one. */
 interface Shell {
   toolbar: HTMLElement;
+  /** The search field. Built with the shell and never repainted, so typing keeps focus. */
+  search: SearchComponent;
   stats: HTMLElement;
   theory: HTMLElement;
   meta: HTMLElement;
@@ -132,6 +136,8 @@ export class DictionaryEditorView extends ItemView {
    * under the cursor whenever a cell is edited.
    */
   private shuffleSeed = Date.now();
+  /** What the search field holds; only the cards that match it are shown. */
+  private query = "";
   /** The fixed sections, or null when nothing is built yet. */
   private shell: Shell | null = null;
   /** What is on screen. Null forces the next repaint to rebuild everything. */
@@ -199,10 +205,12 @@ export class DictionaryEditorView extends ItemView {
         const found = this.app.vault.getAbstractFileByPath(path);
         const next = found instanceof TFile ? found : null;
         // A different file shares no cards with the old one, and its own broken rows
-        // are worth a word of their own.
+        // are worth a word of their own. A search typed for the old words has
+        // nothing to do with the new ones either.
         if (next?.path !== this.file?.path) {
           this.snapshot = null;
           this.warnedUnreadable = false;
+          this.query = "";
         }
         this.file = next;
       }
@@ -353,9 +361,11 @@ export class DictionaryEditorView extends ItemView {
     // A row whose front cell is blank draws no card, so it is not one as far as
     // the snapshot is concerned either — positions have to line up with the DOM.
     // Blankness asked exactly as `isCardRow` asks it, or the two can disagree.
-    const entries = this.orderedRows(doc, front).filter(
-      ({ row }) => !isBlankCell(row[front] ?? ""),
-    );
+    const words = this.orderedRows(doc, front).filter(({ row }) => !isBlankCell(row[front] ?? ""));
+    // Filtered before the snapshot for the same reason: a card the search hides
+    // is not on screen, and a new query is a change of membership like any other.
+    const matches = wordMatcher(this.query, [front, ...backCols]);
+    const entries = words.filter(({ row }) => matches(row));
 
     const next: ViewSnapshot = {
       headers: [...headers],
@@ -396,7 +406,9 @@ export class DictionaryEditorView extends ItemView {
       }
       if (plan.theory) this.renderTheory(shell.theory, doc, file);
       if (plan.cards) {
-        this.renderWords(shell.cards, file, entries, front, backCols);
+        const empty =
+          words.length === 0 ? 'No words yet — use "Add word".' : "No words match the search.";
+        this.renderWords(shell.cards, file, entries, front, backCols, empty);
       } else {
         for (const position of plan.dirty) {
           this.repaintCard(position, file, entries, front, backCols);
@@ -418,11 +430,24 @@ export class DictionaryEditorView extends ItemView {
 
   /** Create the fixed sections, in display order, replacing whatever was there. */
   private buildShell(root: HTMLElement): Shell {
+    // A rebuild can land while the reader is typing, say when a settings change
+    // arrives; the new field takes over the focus the old one had.
+    const typing = this.shell?.search.inputEl === root.doc.activeElement;
     this.clearCards();
     this.releaseTheory();
     root.empty();
+    const toolbar = root.createDiv({ cls: "fsrs-vocabulary-view-toolbar" });
+    const search = new SearchComponent(root.createDiv({ cls: "fsrs-vocabulary-view-search" }))
+      .setPlaceholder("Search words")
+      .setValue(this.query)
+      .onChange((value) => {
+        this.query = value;
+        void this.renderView();
+      });
+    if (typing) search.inputEl.focus();
     const shell: Shell = {
-      toolbar: root.createDiv({ cls: "fsrs-vocabulary-view-toolbar" }),
+      toolbar,
+      search,
       stats: root.createDiv(),
       theory: root.createDiv(),
       meta: root.createDiv(),
@@ -691,14 +716,12 @@ export class DictionaryEditorView extends ItemView {
     entries: RowEntry[],
     front: string,
     backCols: string[],
+    emptyText: string,
   ): void {
     this.clearCards();
     list.empty();
     if (entries.length === 0) {
-      list.createDiv({
-        cls: "fsrs-vocabulary-view-empty",
-        text: 'No words yet — use "Add word".',
-      });
+      list.createDiv({ cls: "fsrs-vocabulary-view-empty", text: emptyText });
       return;
     }
     for (const entry of entries) {

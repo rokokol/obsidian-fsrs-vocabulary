@@ -16,6 +16,7 @@ In the view you can:
 - edit any field inline — paste an attachment to embed it, or type `[[` for wiki-link autocomplete across every vault file
 - drag the handle on a card to reorder (a line shows the insert position)
 - sort the list by word, by due date or at random — the toolbar's sort menu, with the starting order in the settings. Picking **Random** again reshuffles
+- type in the search field under the toolbar to show only the words that match, in any column; every word of the query has to match, and letter case and ё/е do not matter
 - delete a word (with confirmation)
 - edit the theory block live (written back above `## Words`)
 - review words as flashcards (scheduled with [FSRS](https://github.com/open-spaced-repetition/ts-fsrs)) — see [Reviewing](#reviewing)
