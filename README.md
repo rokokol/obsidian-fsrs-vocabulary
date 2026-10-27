@@ -94,6 +94,8 @@ By default the answer joins the question on screen rather than replacing it, so 
 
 ![A card revealed, with the four FSRS grades](docs/images/review-card.png)
 
+A recorded session of due cards follows the schedule while it runs: a card you got wrong comes back in the same session once its short relearning step is up, and so does any card that falls due meanwhile, with cards still being learned going first. When nothing is due, the session ends and says when the next card is. Practice and `All cards` sessions show each card once
+
 Save a choice as a named **preset** and it lands in the note's frontmatter under the `fsrs-vocabulary` key. The first preset is what the plain click runs — the `quick` one; any preset's menu can make it first. Nothing else in that key is touched, so anything you hand-write there survives
 
 ```yaml

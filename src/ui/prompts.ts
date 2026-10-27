@@ -9,6 +9,7 @@ import type { Scheduling } from "../model/srs";
 import { readDictionary, type DictionaryDoc } from "../obsidian/dictionaryFile";
 import { gatherCards, type GatherResult, type ResolveOptions } from "../review/collect";
 import { applySlice, quickOptions, shuffle, type ReviewSlice } from "../review/options";
+import { ReviewQueue } from "../review/queue";
 import { AddWordModal } from "./addWordModal";
 import { ImportWordsModal } from "./importWordsModal";
 import { ReviewModal } from "./reviewModal";
@@ -78,14 +79,18 @@ export async function startReviewSession(
   files: TFile[],
   session: ReviewSession,
 ): Promise<void> {
-  const gathered = await gatherCards(app, files, new Date(), session.resolve);
-  if (gathered.items.length === 0) {
+  const now = new Date();
+  const gathered = await gatherCards(app, files, now, session.resolve);
+  const order = session.order ?? gathered.order;
+  const items = order === "shuffled" ? shuffle(gathered.items) : gathered.items;
+  // A live session also holds cards that are not due yet, so an empty session is
+  // one with nothing to show now, not one that gathered nothing.
+  const queue = new ReviewQueue(items);
+  if (queue.next(now) === null) {
     new Notice(emptyReason(gathered));
     return;
   }
-  const order = session.order ?? gathered.order;
-  const items = order === "shuffled" ? shuffle(gathered.items) : gathered.items;
-  new ReviewModal(app, items, session.prefs).open();
+  new ReviewModal(app, queue, session.prefs).open();
 }
 
 /**

@@ -1,6 +1,6 @@
 import type { App, TFile } from "obsidian";
 import type { Card } from "ts-fsrs";
-import { isCardRow } from "../model/cards";
+import { findCardRow, isCardRow } from "../model/cards";
 import { DUE_COLUMN, SRS_COLUMN } from "../model/dictionary";
 import type { ReviewOrder, ReviewPool } from "../model/dictionaryConfig";
 import { cardFromCell, cardIdFromCell, dueDateString, encodeCard, newCardId } from "../model/srs";
@@ -20,6 +20,11 @@ export interface ReviewItem {
   backColumns: readonly string[];
   /** Whether grading this card writes back to `srs`/`due`. */
   record: boolean;
+  /**
+   * Whether the card comes round again in the same session once its new due
+   * date arrives: a recorded review of due cards. See `ReviewQueue`.
+   */
+  live: boolean;
   /** Raw markdown cell text keyed by content column. */
   fields: Record<string, string>;
   card: Card;
@@ -74,12 +79,17 @@ export async function gatherCards(
     if (options.pool === "all") pool = "all";
     if (options.states && options.states.length > 0) filtered = true;
     const columns = [...options.frontColumns, ...options.backColumns];
+    // A live session also holds the cards that are not due yet, so that one
+    // falling due while the session is open is shown in it. The queue decides
+    // what is due; here only the state filter applies.
+    const live = options.record && options.pool === "due";
+    const selection: ReviewOptions = live ? { ...options, pool: "all" } : options;
 
     rows.forEach((row, rowIndex) => {
       if (!isCardRow(row, options.frontColumns)) return;
       const cell = row[SRS_COLUMN] ?? "";
       const card = cardFromCell(cell, now);
-      if (!selectsCard(card, options, now)) return;
+      if (!selectsCard(card, selection, now)) return;
       const fields: Record<string, string> = {};
       for (const col of columns) fields[col] = row[col] ?? "";
       items.push({
@@ -88,6 +98,7 @@ export async function gatherCards(
         frontColumns: options.frontColumns,
         backColumns: options.backColumns,
         record: options.record,
+        live,
         fields,
         card,
         cardId: cardIdFromCell(cell) ?? newCardId(),
@@ -107,9 +118,13 @@ export async function writeReview(app: App, item: ReviewItem, card: Card): Promi
   await updateWordsTable(app, item.file, (table) => {
     if (!table.headers.includes(SRS_COLUMN)) table.headers.push(SRS_COLUMN);
     if (!table.headers.includes(DUE_COLUMN)) table.headers.push(DUE_COLUMN);
-    const row = table.rows[item.rowIndex];
-    // The row moved or went away between the session gathering it and this write.
+    const front: Record<string, string> = {};
+    for (const column of item.frontColumns) front[column] = item.fields[column] ?? "";
+    const index = findCardRow(table.rows, item.rowIndex, item.cardId, front);
+    const row = table.rows[index];
+    // The row went away between the session gathering it and this write.
     if (!row) return false;
+    item.rowIndex = index;
     row[SRS_COLUMN] = encodeCard(card, item.cardId);
     row[DUE_COLUMN] = dueDateString(card);
     written = true;

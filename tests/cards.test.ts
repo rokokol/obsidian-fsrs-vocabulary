@@ -1,6 +1,6 @@
 import { createEmptyCard, State } from "ts-fsrs";
 import { describe, expect, it } from "vitest";
-import { isCardRow, tableCards } from "../src/model/cards";
+import { findCardRow, isCardRow, tableCards } from "../src/model/cards";
 import { encodeCard } from "../src/model/srs";
 
 const NOW = new Date("2026-01-10T00:00:00.000Z");
@@ -60,5 +60,47 @@ describe("tableCards", () => {
   it("returns nothing when the front column is not in the table", () => {
     expect(tableCards([{ word: "a" }], [], NOW)).toEqual([]);
     expect(tableCards([{ word: "a" }], ["missing"], NOW)).toEqual([]);
+  });
+});
+
+describe("findCardRow", () => {
+  function row(word: string, id: string | null): Record<string, string> {
+    const srs = id === null ? "" : encodeCard(createEmptyCard(NOW), id);
+    return { word, srs };
+  }
+
+  it("takes the row at the remembered index when it holds the same card", () => {
+    const rows = [row("a", "c1"), row("b", "c2")];
+    expect(findCardRow(rows, 1, "c2", { word: "b" })).toBe(1);
+  });
+
+  it("prefers the remembered row among id-less rows sharing a word", () => {
+    const rows = [row("a", null), row("a", null)];
+    expect(findCardRow(rows, 1, "fresh", { word: "a" })).toBe(1);
+  });
+
+  it("finds a card by its id after its row moved", () => {
+    const rows = [row("b", "c2"), row("a", "c1")];
+    expect(findCardRow(rows, 0, "c1", { word: "a" })).toBe(1);
+  });
+
+  it("finds a card with no id yet by its front after its row moved", () => {
+    const rows = [row("b", null), row("a", null)];
+    expect(findCardRow(rows, 0, "fresh", { word: "a" })).toBe(1);
+  });
+
+  it("does not take a row holding another card with the same front", () => {
+    // The id decides when the row has one: two rows can share a word.
+    const rows = [row("a", "c9")];
+    expect(findCardRow(rows, 0, "c1", { word: "a" })).toBe(-1);
+  });
+
+  it("does not take an id-less row with another front", () => {
+    const rows = [row("b", null)];
+    expect(findCardRow(rows, 0, "fresh", { word: "a" })).toBe(-1);
+  });
+
+  it("says -1 when the card is gone", () => {
+    expect(findCardRow([], 3, "c1", { word: "a" })).toBe(-1);
   });
 });

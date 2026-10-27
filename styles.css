@@ -204,6 +204,12 @@
   padding: var(--size-4-6) 0;
 }
 
+.fsrs-vocabulary-review-next {
+  text-align: center;
+  color: var(--text-muted);
+  margin-bottom: var(--size-4-4);
+}
+
 /* Stats */
 .fsrs-vocabulary-stats {
   display: grid;

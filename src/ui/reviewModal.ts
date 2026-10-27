@@ -3,6 +3,7 @@ import { gradeOf, previewDueDates, review, REVIEW_RATINGS, type ReviewRating } f
 import { isBlankCell } from "../model/word";
 import { renderCellValue } from "../render/cellValue";
 import { writeReview, type ReviewItem } from "../review/collect";
+import type { ReviewQueue } from "../review/queue";
 import type { ReviewPrefs } from "./prompts";
 
 function capitalize(value: string): string {
@@ -18,19 +19,22 @@ function formatInterval(now: Date, due: Date): string {
   return `${Math.round(ms / 86400000).toString()}d`;
 }
 
-/** Flashcard review session over a fixed list of items. */
+/** How far ahead the done screen looks for the next card worth mentioning. */
+const NEXT_DUE_HORIZON_MS = 24 * 60 * 60 * 1000;
+
+/** Flashcard review session; the queue decides which card comes next. */
 export class ReviewModal extends Modal {
-  private readonly items: ReviewItem[];
+  private readonly queue: ReviewQueue<ReviewItem>;
   private readonly prefs: ReviewPrefs;
   private readonly renderComponent = new Component();
-  private index = 0;
+  private current: ReviewItem | null = null;
   private revealed = false;
   /** Set while a grade is being written, to keep a second one from starting. */
   private grading = false;
 
-  constructor(app: App, items: ReviewItem[], prefs: ReviewPrefs) {
+  constructor(app: App, queue: ReviewQueue<ReviewItem>, prefs: ReviewPrefs) {
     super(app);
-    this.items = items;
+    this.queue = queue;
     this.prefs = prefs;
   }
 
@@ -66,8 +70,8 @@ export class ReviewModal extends Modal {
     });
   }
 
-  private currentItem(): ReviewItem | undefined {
-    return this.items[this.index];
+  private currentItem(): ReviewItem | null {
+    return this.current;
   }
 
   /**
@@ -107,15 +111,17 @@ export class ReviewModal extends Modal {
     contentEl.empty();
     this.revealed = false;
 
-    const item = this.currentItem();
+    const now = new Date();
+    const item = this.queue.next(now);
+    this.current = item;
     if (!item) {
-      this.renderDone();
+      this.renderDone(now);
       return;
     }
 
     contentEl.createDiv({
       cls: "fsrs-vocabulary-review-progress",
-      text: `${(this.index + 1).toString()} / ${this.items.length.toString()}`,
+      text: `${this.queue.shown.toString()} done · ${this.queue.remaining(now).toString()} left`,
     });
 
     const front = contentEl.createDiv({ cls: "fsrs-vocabulary-review-front" });
@@ -192,8 +198,9 @@ export class ReviewModal extends Modal {
 
   /** Move on without recording anything (practice runs). */
   private advanceUngraded(): void {
-    if (this.currentItem()?.record !== false) return;
-    this.index += 1;
+    const item = this.currentItem();
+    if (item?.record !== false) return;
+    this.queue.skipped(item);
     this.renderCard();
   }
 
@@ -217,20 +224,32 @@ export class ReviewModal extends Modal {
           r: gradeOf(rating),
           s: item.card.state,
         });
+        this.queue.graded(item, next);
+      } else {
+        this.queue.drop(item);
       }
-      this.index += 1;
       this.renderCard();
     } finally {
       this.grading = false;
     }
   }
 
-  private renderDone(): void {
+  private renderDone(now: Date): void {
     const { contentEl } = this;
     contentEl.createDiv({
       cls: "fsrs-vocabulary-review-done",
-      text: `Review complete — ${this.items.length.toString()} cards.`,
+      // Shown, not distinct: a card that came round again counts each time.
+      text: `Review complete — ${this.queue.shown.toString()} cards shown.`,
     });
+    // A card graded Again is due again in minutes; say when, since the session
+    // ends rather than waiting for it.
+    const due = this.queue.nextDue(now);
+    if (due && due.getTime() - now.getTime() <= NEXT_DUE_HORIZON_MS) {
+      contentEl.createDiv({
+        cls: "fsrs-vocabulary-review-next",
+        text: `Next card in ${formatInterval(now, due)}.`,
+      });
+    }
     const controls = contentEl.createDiv({ cls: "fsrs-vocabulary-review-controls" });
     const close = controls.createEl("button", { cls: "mod-cta", text: "Close" });
     close.addEventListener("click", () => {
